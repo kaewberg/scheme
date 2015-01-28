@@ -1,0 +1,20 @@
+(define-library (scheme-impl characters)
+  (import (scheme-impl base))
+  (import (scheme-impl numbers))
+
+  (export char=? char<? char>? char<=? char>=? char-ci=? char-ci<? char-ci>? char-ci<=? char-ci>=?)
+
+  (begin
+      (define (char=? . x) (apply = (map char->integer x)))
+      (define (char<? . x) (apply < (map char->integer x)))
+      (define (char>? . x) (apply > (map char->integer x)))
+      (define (char<=? . x) (apply <= (map char->integer x)))
+      (define (char>=? . x) (apply >= (map char->integer x))) 
+      
+      (define (char-ci=? . x) (apply = (map char->integer (map char-foldcase x))))
+      (define (char-ci<? . x) (apply < (map char->integer (map char-foldcase x))))
+      (define (char-ci>? . x) (apply > (map char->integer (map char-foldcase x))))
+      (define (char-ci<=? . x) (apply <= (map char->integer (map char-foldcase x))))
+      (define (char-ci>=? . x) (apply >= (map char->integer (map char-foldcase x))))
+  )
+)

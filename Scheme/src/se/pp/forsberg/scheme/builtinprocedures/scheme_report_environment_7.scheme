@@ -1,0 +1,36 @@
+(define-library (scheme-impl scheme-report-environment 7)
+  (import (scheme-impl base))
+  (import (scheme-impl derived-expressions))
+  (import (scheme-impl equal))
+  (import (scheme-impl numbers))
+  (import (scheme-impl booleans))
+  (import (scheme-impl pairs-and-lists))
+  (import (scheme cxr))
+    
+  (export define lambda if set! define-syntax)
+  
+  (export cond case and or when unless)
+  (export let let* letrec letrec* let-values let*-values define-values)
+  (export begin do)
+  (export delay-force make-promise promise-done? promise-value promise-update!)
+  (export make-parameter)
+  
+  (export equal? eq? eqv?)
+  
+  (export number? complex? real? rational? integer? exact? inexact? exact-integer?)
+  (export = < > <= >= zero? positive? negative? odd? even? max min + - * /)
+  (export abs floor/ floor-quotient floor-remainder truncate/ truncate-quotient truncate-remainder quotient remainder modulo)
+  (export gcd lcm numerator denominator floor ceiling truncate round rationalize)
+  (export square exact-integer-sqrt expt exact inexact)
+  
+  (export not boolean? boolean=?)
+  
+  (export pair? cons car cdr set-car! set-cdr!)
+  (export caar cadr cdar cddr) 
+  (export null? list? make-list list length append reverse list-tail list-ref list-set!)
+  (export memq memv member assq assv assoc list-copy)
+  
+  (export caaar caadr cadar caddr cdaar cdadr cddar cdddr)
+  (export caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr)
+  (export cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr)
+)

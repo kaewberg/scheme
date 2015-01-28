@@ -1,0 +1,20 @@
+(define-library (scheme-impl strings)
+  (import (scheme-impl base))
+  (import (scheme-impl numbers))
+
+  (export string=? string<? string>? string<=? string>=? string-ci=? string-ci<? string-ci>? string-ci<=? string-ci>=?)
+
+  (begin
+      (define (string=? . x) (apply = (map string->integer x)))
+      (define (string<? . x) (apply < (map string->integer x)))
+      (define (string>? . x) (apply > (map string->integer x)))
+      (define (string<=? . x) (apply <= (map string->integer x)))
+      (define (string>=? . x) (apply >= (map string->integer x))) 
+      
+      (define (string-ci=? . x) (apply = (map string->integer (map string-foldcase x))))
+      (define (string-ci<? . x) (apply < (map string->integer (map string-foldcase x))))
+      (define (string-ci>? . x) (apply > (map string->integer (map string-foldcase x))))
+      (define (string-ci<=? . x) (apply <= (map string->integer (map string-foldcase x))))
+      (define (string-ci>=? . x) (apply >= (map string->integer (map string-foldcase x))))
+  )
+)

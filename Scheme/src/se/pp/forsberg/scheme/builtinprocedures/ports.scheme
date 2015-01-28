@@ -1,0 +1,9 @@
+(define-library (scheme-impl ports)
+  (import (scheme-impl base))
+  (export textual-port? binary-port?)
+  
+  (begin
+    (define (textual-port? obj) (port? obj))
+    (define (binary-port? obj) (port? obj))
+  )
+)

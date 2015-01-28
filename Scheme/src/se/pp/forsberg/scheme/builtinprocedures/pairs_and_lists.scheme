@@ -1,0 +1,11 @@
+(define-library (scheme-impl pairs-and-lists)
+  (import (scheme-impl base))
+  (export caar cadr cdar cddr)
+
+  (begin
+    (define (caar p) (car (car p)))
+    (define (cadr p) (car (cdr p)))
+    (define (cdar p) (cdr (car p)))
+    (define (cddr p) (cdr (cdr p)))
+  )
+)

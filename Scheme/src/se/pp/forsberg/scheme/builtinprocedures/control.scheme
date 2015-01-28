@@ -1,0 +1,11 @@
+(define-library (scheme-impl control)
+  (import (scheme-impl base))
+
+  (export values)
+  
+  (begin
+    (define (values . things)
+      (call-with-current-continuation
+      (lambda (cont) (apply cont things))))
+  )  
+)
