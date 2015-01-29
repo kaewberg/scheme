@@ -1,5 +1,6 @@
 package se.pp.forsberg.scheme.values;
 
+import se.pp.forsberg.scheme.Op;
 import se.pp.forsberg.scheme.SchemeException;
 import se.pp.forsberg.scheme.values.Environment.Context;
 import se.pp.forsberg.scheme.values.errors.RuntimeError;
@@ -98,5 +99,59 @@ public class Lambda extends Procedure {
     java.lang.String body = this.body.toString();
     body = body.substring(1, body.length()-1);
     return "(lambda " + pattern + " " + body + ")";
+  }
+
+  class Sequence extends Op {
+    // Apply proc args:
+    // parent
+    // (new environment)
+    // Sequence (cdr body)
+    // Eval
+    // value = (car body)
+    
+    // Sequence (x . y):
+    // parent
+    // Sequence y
+    // Eval
+    // value = x
+    // Sequence x:
+    // parent
+    // value = x
+    public Sequence(Op parent, Environment env) {
+      super(parent, env);
+    }
+    public Sequence(Op parent) {
+      super(parent);
+    }
+
+    @Override
+    protected Op apply(Value v) {
+      if (!v.isPair()) {
+        setValue(v);
+        return parent;
+      }
+      Pair p = (Pair) v;
+      Op result = new Sequence(parent);
+      result = new Op.Eval(result);
+      Value expr = p.getCar();
+      if (!isDefinition(expr)) {
+        env.popContext();
+        env.pushContext(Context.EXPRESSIONS);
+      }
+      result.setValue(p.getCar());
+      return result;
+    }
+    
+  }
+  @Override
+  public Op apply(Op parent, Environment env, Value args) {
+    Lambda application;
+    application = createApplication();
+    return application.applyInternal(parent, args);
+  }
+  protected Op applyInternal(Op parent, Value args) {
+    bind(pattern, args, env);
+    env.pushContext(Context.START_BODY);
+    return new Sequence(parent, env);
   }
 }

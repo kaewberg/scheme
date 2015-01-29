@@ -1,5 +1,6 @@
 package se.pp.forsberg.scheme.values;
 
+import se.pp.forsberg.scheme.Op;
 import se.pp.forsberg.scheme.SchemeException;
 import se.pp.forsberg.scheme.values.errors.RuntimeError;
 
@@ -46,6 +47,13 @@ public abstract class BuiltInProcedure extends Procedure {
   @Override
   public java.lang.String toString() {
     return name;
+  }
+  
+  @Override
+  // For procedures that do not need apply or eval
+  public Op apply(Op op, Environment env, Value arguments) {
+    op.setValue(apply(arguments));
+    return op.getParent();
   }
 
 }

@@ -1,10 +1,9 @@
 package se.pp.forsberg.scheme.values.macros;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+import se.pp.forsberg.scheme.Op;
 import se.pp.forsberg.scheme.SchemeException;
 import se.pp.forsberg.scheme.values.Environment;
 import se.pp.forsberg.scheme.values.Identifier;
@@ -153,7 +152,6 @@ public class Macro extends PatternKeyword {
         if (v == null) break;
         vResult.add(v);
       }
-
     }
     // protected Value replace(Value template, Map<Identifier, Binding>
     // bindings, boolean repeated) {
@@ -259,6 +257,12 @@ public class Macro extends PatternKeyword {
     // // TODO Auto-generated method stub
     // return null;
     // }
+
+    @Override
+    public Op match(Op op, Environment env, Value pattern, Value expression, Bindings bindings) {
+      op.setValue(replace(template, bindings));
+      return op.getParent();
+    }
 
   }
 }

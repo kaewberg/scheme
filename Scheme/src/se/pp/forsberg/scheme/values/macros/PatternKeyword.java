@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import se.pp.forsberg.scheme.Op;
 import se.pp.forsberg.scheme.SchemeException;
 import se.pp.forsberg.scheme.values.Environment;
 import se.pp.forsberg.scheme.values.Identifier;
@@ -34,7 +35,19 @@ public class PatternKeyword extends Keyword {
   protected interface Action {
     //Value match(Environment env, Value pattern, Value expression, Map<Identifier, Binding> bindings);
     Value match(Environment env, Value pattern, Value expression, Bindings bindings);
+    Op match(Op parent, Environment env, Value pattern, Value expression, Bindings bindings);
   }
+
+  // A simple action is one that doesn't need recursion or evaluation
+  public abstract class SimpleAction implements Action {
+    @Override
+    public Op match(Op op, Environment env, Value pattern, Value expression, Bindings bindings) {
+      Value v = match(env, pattern, expression, bindings);
+      op.setValue(v);
+      return op.getParent();
+    }
+  }
+  
   protected class Rule {
     private Value pattern;
     private Action action;
@@ -372,5 +385,21 @@ public class PatternKeyword extends Keyword {
     }
     throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid use of keyword " + getKeyword())));
   }
+  @Override
+  /**
+   * Continuation based variant.
+   * Keyword should never recursively call eval or apply, but rather stack ops
+   */
+  public Op apply(Op op, Pair expression, Environment env) {
+    for (Rule rule: rules) {
+      int i = 1+1;
+      Bindings bindings = new Bindings(rule.getAllIdentifiers());
+      if (match(expression, rule.getPattern(), bindings)) {
+        return rule.getAction().match(op, env, rule.getPattern(), expression, bindings);
+      }
+    }
+    return op.error("Invalid use of keyword", this);
+  }
+  
 
 }

@@ -1,8 +1,8 @@
 package se.pp.forsberg.scheme.builtinprocedures;
 
 import java.util.List;
-import java.util.Map;
 
+import se.pp.forsberg.scheme.Op;
 import se.pp.forsberg.scheme.SchemeException;
 import se.pp.forsberg.scheme.values.Environment;
 import se.pp.forsberg.scheme.values.Identifier;
@@ -20,8 +20,20 @@ public class BasicKeywords extends Library {
     return new Pair(new Identifier("scheme-impl"), new Pair(new Identifier("base"), Nil.NIL));
   }
   
+  
   public class Define extends BuiltInKeyword {
 
+    class DefineOp extends Op {
+      private Identifier id;
+      DefineOp(Op parent, Identifier id) { super(parent); this.id = id; }
+      @Override
+      public Op apply(Value v) {
+        env.define(id, v);
+        setValue(Value.UNSPECIFIED);
+        return parent;
+      }
+    };
+    
     public Define() {
       super("define");
       final Identifier define = new Identifier("define");
@@ -42,6 +54,23 @@ public class BasicKeywords extends Library {
           env.define((Identifier) xv, value.eval(env));
           return Value.UNSPECIFIED;
         }
+
+        @Override
+        // parent
+        // Define x
+        // Eval
+        // value = (lambda args y)
+        public Op match(Op parent, Environment env, Value pattern, Value expression, Bindings bindings) {
+          Value xv = bindings.get(x);
+          if (!xv.isIdentifier()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid define, expected identifier" + expression)));
+          Value argvs = bindings.getValuesAsList(arg);
+          Value yv = bindings.get(y);
+          Value value = Pair.makeList(new Value[] { lambda, argvs, yv });
+          Op result = new DefineOp(parent, (Identifier) xv);
+          result = new Op.Eval(result);
+          result.setValue(value);
+          return result;
+        }
       }));
       // (define (x . arg) y) --> x = (lambda arg y)
       pattern = Pair.makeList(new Value[] { define, new Pair(x, arg), y});
@@ -55,6 +84,23 @@ public class BasicKeywords extends Library {
           env.define((Identifier) xv, value.eval(env));
           return Value.UNSPECIFIED;
         }
+
+        @Override
+        // parent
+        // Define x
+        // Eval
+        // value = (lambda arg y)
+        public Op match(Op parent, Environment env, Value pattern, Value expression, Bindings bindings) {
+          final Value xv =  bindings.get(x);
+          if (!xv.isIdentifier()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid define, expected identifier" + expression)));
+          Value argv = bindings.get(arg);
+          Value yv = bindings.get(y);
+          Value value = Pair.makeList(new Value[] { lambda, argv, yv} );
+          Op result = new DefineOp(parent, (Identifier) xv);
+          result = new Op.Eval(result);
+          result.setValue(value);
+          return result;
+        }
       }));
       // (define x y) --> x = y
       pattern = Pair.makeList(new Value[] { define, x, y });
@@ -65,6 +111,21 @@ public class BasicKeywords extends Library {
           Value yv = bindings.get(y);
           env.define((Identifier) xv, yv.eval(env));
           return Value.UNSPECIFIED;
+        }
+
+        @Override
+        // parent
+        // Define x
+        // Eval
+        // value = y
+        public Op match(Op parent, Environment env, Value pattern, Value expression, Bindings bindings) {
+          Value xv = bindings.get(x);
+          if (!xv.isIdentifier()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid define, expected identifier" + expression)));
+          Value yv = bindings.get(y);
+          Op result = new DefineOp(parent, (Identifier) xv);
+          result = new Op.Eval(result);
+          result.setValue(yv);
+          return result;
         }
       }));
     }
@@ -117,7 +178,7 @@ public class BasicKeywords extends Library {
       
       // (lambda formals body ...)
       Value pattern = Pair.makeList(new Value[] { lambda, formals, body, getEllipsis()});
-      addRule(new Rule(pattern, new Action() {
+      addRule(new Rule(pattern, new SimpleAction() {
         @Override public Value match(Environment env, Value pattern, Value expression, Bindings bindings) {
           return new se.pp.forsberg.scheme.values.Lambda(bindings.get(formals), bindings.getValuesAsList(body), env);
         }
@@ -125,6 +186,27 @@ public class BasicKeywords extends Library {
     }
   }
   public class If extends BuiltInKeyword {
+    class IfOp extends Op {
+      private Value consequent, alternative;
+      public IfOp(Op parent, Value consequent, Value alternative) {
+        super(parent);
+        this.consequent = consequent;
+        this.alternative = alternative;
+      }
+      @Override
+      public Op apply(Value v) {
+        Op result = parent;
+        result = new Op.Eval(result);
+        if (v.asBoolean()) {
+          result.setValue(consequent);
+        } else if (alternative != null){
+          result.setValue(alternative);
+        } else {
+          result.setValue(Value.UNSPECIFIED);
+        }
+        return result;
+      }
+    }
     public If() {
       super("if");
       final Identifier iff = new Identifier("if");
@@ -145,6 +227,30 @@ public class BasicKeywords extends Library {
             return vAlternate;
           }
         }
+
+        @Override
+        // parent
+        // If consequent alternative
+        // Eval
+        // test
+        //
+        // If true:
+        // parent
+        // Eval
+        // consequent
+        // If false:
+        // parent
+        // Eval
+        // consequent
+        public Op match(Op parent, Environment env, Value pattern, Value expression, Bindings bindings) {
+          Value vTest = bindings.get(test);
+          Value vConsequent = bindings.get(consequent);
+          Value vAlternate = bindings.get(alternate);
+          Op result = new IfOp(parent, vConsequent, vAlternate);
+          result = new Op.Eval(result);
+          result.setValue(vTest);
+          return result;
+        }
       }));
       // (if test consequent)
       pattern = Pair.makeList(new Value[] { iff, test, consequent });
@@ -158,11 +264,34 @@ public class BasicKeywords extends Library {
             return Value.UNSPECIFIED;
           }
         }
+
+        @Override
+        public Op match(Op parent, Environment env, Value pattern, Value expression, Bindings bindings) {
+          Value vTest = bindings.get(test);
+          Value vConsequent = bindings.get(consequent);
+          Op result = new IfOp(parent, vConsequent, null);
+          result = new Op.Eval(result);
+          result.setValue(vTest);
+          return result;
+        }
       }));
     }
   }
   
   public class Set extends BuiltInKeyword {
+    class SetOp extends Op {
+      private Identifier id;
+      public SetOp(Op parent, Identifier id) {
+        super(parent);
+        this.id = id;
+      }
+      @Override
+      public Op apply(Value v) {
+        setValue(Value.UNSPECIFIED);
+        env.set(id, v);
+        return parent;
+      }
+    }
     public Set() {
       super("set!");
       final Identifier set = new Identifier("set!");
@@ -177,6 +306,21 @@ public class BasicKeywords extends Library {
           if (!vVariable.isIdentifier()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid set!, expected variable, not " + vVariable)));
           env.set((Identifier) vVariable, bindings.get((Identifier) vVariable).eval(env));
           return Value.UNSPECIFIED;
+        }
+
+        @Override
+        // parent
+        // Set variable
+        // Eval
+        // value = expression
+        public Op match(Op parent, Environment env, Value pattern, Value expression, Bindings bindings) {
+          Value vVariable = bindings.get(variable);
+          if (!vVariable.isIdentifier()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid set!, expected variable, not " + vVariable)));
+          Value vExpression = bindings.get((Identifier) vVariable);
+          Op result = new SetOp(parent, (Identifier) vVariable);
+          result = new Op.Eval(result);
+          result.setValue(vExpression);
+          return result;
         }
       }));
     }
@@ -196,7 +340,7 @@ public class BasicKeywords extends Library {
       Value pattern = Pair.makeList(new Value[] {
           defineSyntax, keyword, Pair.makeList(new Value[] {
               syntaxRules, Pair.makeList(new Value[] { literal, getEllipsis() }), rule, getEllipsis() })});
-      addRule(new Rule(pattern, new Action() {
+      addRule(new Rule(pattern, new SimpleAction() {
         @Override public Value match(Environment env, Value pattern, Value expression, Bindings bindings) {
           Value vKeyword = bindings.get(keyword);
           List<Value> vLiterals = bindings.getValues(literal);
@@ -211,7 +355,7 @@ public class BasicKeywords extends Library {
       pattern = Pair.makeList(new Value[] {
           defineSyntax, keyword, Pair.makeList(new Value[] {
               syntaxRules, ellipsis, Pair.makeList(new Value[] { literal, getEllipsis() }), rule, getEllipsis() })});
-      addRule(new Rule(pattern, new Action() {
+      addRule(new Rule(pattern, new SimpleAction() {
         @Override public Value match(Environment env, Value pattern, Value expression, Bindings bindings) {
           Value vKeyword = bindings.get(keyword);
           Value vEllipsis = bindings.get(ellipsis);

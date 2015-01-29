@@ -1,5 +1,6 @@
 package se.pp.forsberg.scheme.values.macros;
 
+import se.pp.forsberg.scheme.Op;
 import se.pp.forsberg.scheme.values.Environment;
 import se.pp.forsberg.scheme.values.Pair;
 import se.pp.forsberg.scheme.values.Value;
@@ -12,6 +13,7 @@ public abstract class Keyword extends Value {
   public String getKeyword() { return keyword; }
   
   public abstract Value apply(Pair expression, Environment env);
+  public abstract Op apply(Op parent, Pair expression, Environment env);
   //public abstract Value replayApply(Pair pair, Environment environment, Continuation replay, Continuation continuation);
   
   @Override public boolean equal(Value value) { return eqv(value); }
@@ -27,4 +29,5 @@ public abstract class Keyword extends Value {
   public int hashCode() {
     return keyword.hashCode();
   }
+
 }
