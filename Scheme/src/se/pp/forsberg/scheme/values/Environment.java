@@ -312,4 +312,7 @@ public class Environment extends Value {
     if (parent != null) result +=  " -> " + parent.toString();
     return result;
   }
+  public Object vals() {
+    return values;
+  }
 }

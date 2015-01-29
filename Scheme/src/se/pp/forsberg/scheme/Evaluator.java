@@ -228,6 +228,7 @@ public class Evaluator {
       System.out.println("-----------------------------------------------------");
       System.out.println(stack);
       System.out.println("value = " + value);
+      System.out.println("env = " + stack.env.vals());
       stack = stack.apply(value);
     }
     return value;

@@ -121,33 +121,36 @@ public class Lambda extends Procedure {
     // Sequence x:
     // parent
     // value = x
-    public Sequence(Op parent, Environment env) {
+    private Value cdr;
+    public Sequence(Op parent, Environment env, Value cdr) {
       super(parent, env);
+      this.cdr = cdr;
     }
-    public Sequence(Op parent) {
+    public Sequence(Op parent, Value cdr) {
       super(parent);
+      this.cdr = cdr;
     }
 
     @Override
     protected Op apply(Value v) {
-      if (!v.isPair()) {
+      if (cdr.isNull()) {
         setValue(v);
         return parent;
       }
-      Pair p = (Pair) v;
-      Op result = new Sequence(parent);
+      Pair p = (Pair) cdr;
+      Op result = new Sequence(parent, env, p.getCdr());
       result = new Op.Eval(result);
       Value expr = p.getCar();
       if (!isDefinition(expr)) {
         env.popContext();
         env.pushContext(Context.EXPRESSIONS);
       }
-      result.setValue(p.getCar());
+      result.setValue(expr);
       return result;
     }
     @Override
     protected java.lang.String getDescription() {
-      return "Sequence";
+      return "Sequence " + cdr;
     }
     
   }
@@ -160,6 +163,7 @@ public class Lambda extends Procedure {
   protected Op applyInternal(Op parent, Value args) {
     bind(pattern, args, env);
     env.pushContext(Context.START_BODY);
-    return new Sequence(parent, env);
+    parent.setValue(Value.UNSPECIFIED);
+    return new Sequence(parent, env, body);
   }
 }
