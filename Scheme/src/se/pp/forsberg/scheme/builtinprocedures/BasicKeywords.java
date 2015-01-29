@@ -200,7 +200,7 @@ public class BasicKeywords extends Library {
       @Override
       public Op apply(Value v) {
         Op result = parent;
-        result = new Op.Eval(result);
+        //result = new Op.Eval(result);
         if (v.asBoolean()) {
           result.setValue(consequent);
         } else if (alternative != null){

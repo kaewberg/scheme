@@ -5,6 +5,7 @@ import java.util.List;
 
 import se.pp.forsberg.scheme.Op;
 import se.pp.forsberg.scheme.SchemeException;
+import se.pp.forsberg.scheme.Op.Eval;
 import se.pp.forsberg.scheme.values.Environment;
 import se.pp.forsberg.scheme.values.Identifier;
 import se.pp.forsberg.scheme.values.Nil;
@@ -259,9 +260,14 @@ public class Macro extends PatternKeyword {
     // }
 
     @Override
+    // Macro x y:
+    // parent
+    // Eval
+    // rewrite value
     public Op match(Op op, Environment env, Value pattern, Value expression, Bindings bindings) {
+      Op result = new Op.Eval(op.getParent(), env);
       op.setValue(replace(template, bindings));
-      return op.getParent();
+      return result;
     }
 
   }
