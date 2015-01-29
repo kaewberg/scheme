@@ -3,6 +3,7 @@ package se.pp.forsberg.scheme;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,16 +32,26 @@ import se.pp.forsberg.scheme.values.numbers.RationalPair;
 public class TestScheme {
 
   private static Environment env = Environment.schemeReportEnvironment(7);
-  protected SchemeParser createParser(java.lang.String s) {
-    ANTLRInputStream stream = new ANTLRInputStream(s);
-    SchemeLexer lexer = new SchemeLexer(stream);
-    return new SchemeParser(new CommonTokenStream(lexer));
+//  protected SchemeParser createParser(java.lang.String s) {
+//    ANTLRInputStream stream = new ANTLRInputStream(s);
+//    SchemeLexer lexer = new SchemeLexer(stream);
+//    return new SchemeParser(new CommonTokenStream(lexer));
+//  }
+//  protected Value eval(Value value) {
+//    return value.eval(env);
+//  }
+//  protected Value eval(java.lang.String source) {
+//    return createParser(source).datumWs().value.eval(env);
+//  }
+  protected Parser createParser(java.lang.String s) {
+    return new Parser(new StringReader(s));
   }
   protected Value eval(Value value) {
-    return value.eval(env);
+    return Scheme.eval(value, env);
+    //return value.eval(env);
   }
   protected Value eval(java.lang.String source) {
-    return createParser(source).datumWs().value.eval(env);
+    return eval(createParser(source).read());
   }
   @Test
   public void testSelfEvaluating1() {

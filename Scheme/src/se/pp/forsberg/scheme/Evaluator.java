@@ -1,11 +1,16 @@
 package se.pp.forsberg.scheme;
 
+import javax.xml.ws.handler.MessageContext;
+
 import se.pp.forsberg.scheme.values.Environment;
 import se.pp.forsberg.scheme.values.Identifier;
 import se.pp.forsberg.scheme.values.Pair;
+import se.pp.forsberg.scheme.values.String;
 import se.pp.forsberg.scheme.values.Procedure;
 import se.pp.forsberg.scheme.values.Value;
 import se.pp.forsberg.scheme.values.macros.Keyword;
+import se.pp.forsberg.scheme.values.errors.*;
+import se.pp.forsberg.scheme.values.errors.Error;
 
 //
 //import java.util.HashSet;
@@ -213,10 +218,16 @@ public class Evaluator {
   
   Value value;
   
-  Value eval(Value v, Environment env) {
-    Op stack = new Op.Eval(this, null, env);
+  public Value eval(Value v, Environment env) {
+    Op stack = new Op.Done(this, env);
+    stack = new Op.Eval(stack);
     value = v;
-    while (stack != null) {
+    System.out.println("Eval " + v);
+    while (!(stack instanceof Op.Done)) {
+      // Debug
+      System.out.println("-----------------------------------------------------");
+      System.out.println(stack);
+      System.out.println("value = " + value);
       stack = stack.apply(value);
     }
     return value;
@@ -224,5 +235,32 @@ public class Evaluator {
   void setValue(Value v) {
     value = v;
   }
-  Op error(String message, Value irritant) { return null; }
+  class ErrorOp extends Op {
+    private Value error;
+    public ErrorOp(Evaluator evaluator, java.lang.String message, Value irritants) {
+      super(evaluator, new Op.Done(evaluator));
+      this.error = new Error(new String(message), irritants);
+    }
+
+    public ErrorOp(Evaluator evaluator, Value error) {
+      super(evaluator, new Op.Done(evaluator));
+      this.error = error;
+    }
+
+    @Override
+    protected Op apply(Value v) {
+      setValue(error);
+      return parent;
+    }
+
+    @Override
+    protected java.lang.String getDescription() {
+      return "Error " + error;
+    }
+    
+  }
+  Op error(java.lang.String message, Value irritant) { return new ErrorOp(this, message, irritant); }
+  public Op error(Value error) {
+    return new ErrorOp(this, error);
+  }
 }

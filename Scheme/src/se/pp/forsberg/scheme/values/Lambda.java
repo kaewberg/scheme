@@ -58,7 +58,9 @@ public class Lambda extends Procedure {
   }
   protected static void bind(Value pattern, Value args, Environment env) {
     if (pattern.isNull()) {
-      if (!args.isNull()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Pattern mismatch")));
+      if (!args.isNull()) {
+        throw new SchemeException(new RuntimeError(new IllegalArgumentException("Pattern mismatch")));
+      }
       return;
     }
     if (pattern.isIdentifier()) {
@@ -66,7 +68,9 @@ public class Lambda extends Procedure {
       return;
     }
     if (pattern.isPair()) {
-      if (!args.isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Pattern mismatch")));
+      if (!args.isPair()) {
+        throw new SchemeException(new RuntimeError(new IllegalArgumentException("Pattern mismatch")));
+      }
       bind(((Pair) pattern).getCar(), ((Pair) args).getCar(), env);
       bind(((Pair) pattern).getCdr(), ((Pair) args).getCdr(), env);
       return;
@@ -140,6 +144,10 @@ public class Lambda extends Procedure {
       }
       result.setValue(p.getCar());
       return result;
+    }
+    @Override
+    protected java.lang.String getDescription() {
+      return "Sequence";
     }
     
   }

@@ -30,6 +30,9 @@ public class Error extends Value {
   }
   @Override
   public java.lang.String toString() {
+    if (message != null) {
+      return  "[Error " + message + " " + irritants + "]";
+    }
     return "[Error " + x.getMessage() + "]";
   }
   @Override

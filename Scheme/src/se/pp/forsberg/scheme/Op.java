@@ -24,11 +24,45 @@ public abstract class Op {
     this(parent.evaluator, parent, parent.env);
   }
 
+  public Op(Evaluator evaluator, Op parent) {
+    this(evaluator, parent, parent.env);
+  }
   abstract protected Op apply(Value v);
+  @Override
+  public String toString() {
+    String description = getDescription();
+    if (parent != null) {
+      description = parent.toString() + "\n" + description;
+    }
+    return description;
+  }
+  abstract protected String getDescription();
 
   // Continuations
   // This file contains the basic ops needed for list evaluation
   // See keyword.apply and procedure.apply for more
+
+  static class Done extends Op {
+
+    public Done(Evaluator evaluator) {
+      super(evaluator, null, null);
+    }
+
+    public Done(Evaluator evaluator, Environment env) {
+      super(evaluator, null, env);
+    }
+
+    @Override
+    protected Op apply(Value v) {
+      setValue(v);
+      return this;
+    }
+
+    @Override
+    protected String getDescription() {
+      return "Done";
+    }
+  }
 
   /*
    * Eval x
@@ -40,6 +74,8 @@ public abstract class Op {
    * Eval (keyword . x) = this
    *                      ApplyKeyword
    *                      value = x
+   * Eval (quote y) = parent
+   *                  value = y
    * Eval (x . y) = parent
    *                Apply (car value) (cd value)
    *                Cons value (ListEval y)
@@ -79,21 +115,33 @@ public abstract class Op {
       v = p.getCar();
       if (v.isIdentifier()) {
         Identifier id = (Identifier) v;
+        if (id.getIdentifier().equals("quote")) {
+          Value cdr = p.getCdr();
+          if (!cdr.isPair()) return error("Malformed quote", cdr);
+          setValue(((Pair)cdr).getCar());
+          return parent;
+        }
         v = env.lookup(id);
         if (v == null) {
           return evaluator.error("Undefined identifier", id);
         }
         if (v instanceof Keyword) {
-          setValue(p.getCdr());
+          setValue(p);
           return new ApplyKeyword(this, env, (Keyword) v);
         }
       }
-      Op result = parent;
-      result = new Apply(result, env);
-      result = new Cons(result, env, p.getCdr());
+      
+      Op result = new Apply(evaluator, parent, env);
+      result = new Cons(evaluator, result, env, p.getCdr());
       result = new Eval(result, env);
       evaluator.setValue(p.getCar());
       return result;
+    }
+
+    @Override
+    protected
+    String getDescription() {
+      return "Eval";
     }
   }
 
@@ -106,18 +154,24 @@ public abstract class Op {
   static class Cons extends Op {
     private Value cdr;
 
-    Cons(Op parent, Environment env, Value cdr) {
-      super(parent, env);
+    Cons(Evaluator evaluator, Op parent, Environment env, Value cdr) {
+      super(evaluator, parent, env);
       this.cdr = cdr;
     }
 
     @Override
     protected
     Op apply(Value v) {
-      Op result = new Cons2(parent, env, v);
+      Op result = new Cons2(evaluator, parent, env, v);
       result = new ListEval(result, env);
       evaluator.setValue(cdr);
       return result;
+    }
+
+    @Override
+    protected
+    String getDescription() {
+      return "Cons x " + cdr;
     }
   }
 
@@ -128,8 +182,8 @@ public abstract class Op {
   static class Cons2 extends Op {
     private Value car;
 
-    Cons2(Op parent, Environment env, Value car) {
-      super(parent, env);
+    Cons2(Evaluator evaluator, Op parent, Environment env, Value car) {
+      super(evaluator, parent, env);
       this.car = car;
     }
 
@@ -139,6 +193,12 @@ public abstract class Op {
       Op result = parent;
       setValue(new Pair(car, v));
       return result;
+    }
+
+    @Override
+    protected
+    String getDescription() {
+      return "Cons2 " + car + " x";
     }
   }
 
@@ -164,10 +224,16 @@ public abstract class Op {
         return result;
       }
       Pair p = (Pair) v;
-      result = new Cons(result, env, p.getCdr());
+      result = new Cons(evaluator, result, env, p.getCdr());
       result = new Eval(result, env);
       setValue(p.getCar());
       return result;
+    }
+
+    @Override
+    protected
+    String getDescription() {
+      return "ListEval";
     }
   }
 
@@ -190,8 +256,14 @@ public abstract class Op {
         return evaluator.error("Expected pair in keyword apply", v);
       }
       Op result = k.apply(parent, (Pair) v, env);
-      setValue(v);
+      //setValue(v);
       return result;
+    }
+
+    @Override
+    protected
+    String getDescription() {
+      return "ApplyKeyword " + k; 
     }
   }
 
@@ -205,6 +277,10 @@ public abstract class Op {
       super(parent, env);
     }
 
+    public Apply(Evaluator evaluator, Op parent, Environment env) {
+      super(evaluator, parent, env);
+    }
+
     @Override
     protected
     Op apply(Value v) {
@@ -214,9 +290,15 @@ public abstract class Op {
       if (!p.getCar().isProcedure())
         return error("Expected procedure in procedure apply", p.getCar());
       Procedure proc = (Procedure) p.getCar();
+      int i = 2;
       Op result = proc.apply(parent, env, p.getCdr());
-      evaluator.setValue(v);
       return result;
+    }
+
+    @Override
+    protected
+    String getDescription() {
+      return "Apply";
     }
   }
 
@@ -228,5 +310,8 @@ public abstract class Op {
   }
   public Op getParent() {
     return parent;
+  }
+  public Op error(Value error) {
+    return evaluator.error(error);
   }
 }

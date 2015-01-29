@@ -7,20 +7,23 @@ import java.io.StringReader;
 import org.junit.Test;
 
 import se.pp.forsberg.scheme.Parser;
+import se.pp.forsberg.scheme.Scheme;
 import se.pp.forsberg.scheme.values.Boolean;
 import se.pp.forsberg.scheme.values.Environment;
 import se.pp.forsberg.scheme.values.Value;
 
 public class TestPairsAndList {
   private static Environment env = Environment.schemeReportEnvironment(7);
+
   protected Parser createParser(java.lang.String s) {
     return new Parser(new StringReader(s));
   }
   protected Value eval(Value value) {
-    return value.eval(env);
+    return Scheme.eval(value, env);
+    //return value.eval(env);
   }
   protected Value eval(java.lang.String source) {
-    return createParser(source).read().eval(env);
+    return eval(createParser(source).read());
   }
   
 

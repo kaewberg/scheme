@@ -32,6 +32,10 @@ public class BasicKeywords extends Library {
         setValue(Value.UNSPECIFIED);
         return parent;
       }
+      @Override
+      protected String getDescription() {
+        return "Define " + id;
+      }
     };
     
     public Define() {
@@ -206,6 +210,10 @@ public class BasicKeywords extends Library {
         }
         return result;
       }
+      @Override
+      protected String getDescription() {
+        return "If " + consequent + " " + alternative;
+      }
     }
     public If() {
       super("if");
@@ -290,6 +298,10 @@ public class BasicKeywords extends Library {
         setValue(Value.UNSPECIFIED);
         env.set(id, v);
         return parent;
+      }
+      @Override
+      protected String getDescription() {
+        return "Set " + id;
       }
     }
     public Set() {

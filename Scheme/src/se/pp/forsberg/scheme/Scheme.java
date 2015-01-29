@@ -6,12 +6,8 @@ import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.Reader;
-import java.util.HashSet;
-import java.util.Set;
 
 import se.pp.forsberg.scheme.values.Environment;
-import se.pp.forsberg.scheme.values.Identifier;
-import se.pp.forsberg.scheme.values.Pair;
 import se.pp.forsberg.scheme.values.Value;
 import se.pp.forsberg.scheme.values.errors.Error;
 
@@ -35,7 +31,7 @@ public class Scheme {
            env.importLibrary(v);
            value = Value.UNSPECIFIED;
         } else {
-          value = v.eval(env);
+          value = eval(v, env);
         }
       } catch (SchemeException x) {
         value = x.getError();
@@ -61,7 +57,7 @@ public class Scheme {
     while (!v.isEof()) {
       Value value;
       try {
-        value = v.eval(env);
+        value = eval(v, env);
       } catch (SchemeException x) {
         value = x.getError();
         if (value.isError()) {
@@ -111,5 +107,10 @@ public class Scheme {
     } catch (Exception x) {
       x.printStackTrace();
     }
+  }
+  private static Evaluator evaluator = new Evaluator();
+  public static Value eval(Value expression, Environment env) {
+    return evaluator.eval(expression, env);
+    // return expression.eval(env);
   }
 }
