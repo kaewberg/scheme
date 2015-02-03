@@ -1,11 +1,46 @@
 (define-library (scheme-impl control)
   (import (scheme-impl base))
 
-  (export values)
+  (export values map string-map vector-map)
   
-  (begin
+  (begin)
+      
+    (define (generic-map proc null carp cdrp consp args)
+      (let ((multi-car (lambda (x)
+                        (if (null? x)
+                             '()
+                            (cons (carp x) (multi-car (cdrp x))))))
+            (multi-cdr (lambda (x)
+                        (if (null? x)
+                             '()
+                            (cons (cdrp x) (multi-cdr (cdrp x)))))))
+        (if (not args)
+            null
+            (consp (proc (multi-car args)) (generic-map (multi-cdr args))))))
+
+    (define (map proc . args) (generic-map proc '() car cdr cons args))
+    (define (string-map proc . args)
+      (generic-map proc 
+                   ""
+                   (lambda (s) (string-ref s 0))
+                   (lambda (s) (string-copy s 1))
+                   (lambda (c s) (string-append (string c) s))
+                   args))
+    (define (vector-map proc . args)
+      (generic-map proc 
+                   #()
+                   (lambda (s) (vector-ref s 0))
+                   (lambda (s) (vector-copy s 1))
+                   (lambda (c s) (vector-append (string c) s))
+                   args))
+    (define (for-each proc . args) (map proc . args) #f)
+    (define (string-for-each proc . args) (string-map proc . args) #f)
+    (define (vector-for-each proc . args) (vector-map proc . args) #f)
+    
     (define (values . things)
       (call-with-current-continuation
-      (lambda (cont) (apply cont things))))
+      (lambda (cont) (apply cont things)))
+    (define (call-with-values producer consumer)
+      (apply consumer (producer))) 
   )  
 )

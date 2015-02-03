@@ -53,10 +53,10 @@ public abstract class BuiltInProcedure extends Procedure {
   // For procedures that do not need apply or eval
   public Op apply(Op op, Environment env, Value arguments) {
     try {
-      op.setValue(apply(arguments));
+      op.getEvaluator().setValue(apply(arguments));
       return op;
     } catch (SchemeException x) {
-      return op.error(x.getError());
+      return op.getEvaluator().error(x.getError());
     }
   }
 

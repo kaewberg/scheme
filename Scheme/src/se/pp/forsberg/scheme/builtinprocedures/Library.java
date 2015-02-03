@@ -53,6 +53,7 @@ public class Library {
     libraries.put(makeName("scheme", "cxr"), new LibraryDefinition("cxr.scheme"));
     libraries.put(Complex.getName(), new LibraryDefinition(Complex.class));
     libraries.put(Inexact.getName(), new LibraryDefinition(Inexact.class));
+    libraries.put(Control.getName(), new LibraryDefinition(Control.class));
     
     libraries.put(makeName("scheme-impl", "scheme-report-environment", 7), new LibraryDefinition("scheme_report_environment_7.scheme"));
   }

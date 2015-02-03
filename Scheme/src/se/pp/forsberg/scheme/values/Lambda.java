@@ -132,7 +132,9 @@ public class Lambda extends Procedure {
     }
 
     @Override
-    protected Op apply(Value v) {
+    public Op apply(Value v) {
+//      if (vs.length != 1) return evaluator.error("Multiple return values used in a single value context", Pair.makeList(vs));
+//      Value v = vs[0];
       if (cdr.isNull()) {
         setValue(v);
         return parent;
@@ -145,7 +147,7 @@ public class Lambda extends Procedure {
         env.popContext();
         env.pushContext(Context.EXPRESSIONS);
       }
-      result.setValue(expr);
+      result.getEvaluator().setValue(expr);
       return result;
     }
     @Override
@@ -163,7 +165,7 @@ public class Lambda extends Procedure {
   protected Op applyInternal(Op parent, Value args) {
     bind(pattern, args, env);
     env.pushContext(Context.START_BODY);
-    parent.setValue(Value.UNSPECIFIED);
+    parent.getEvaluator().setValue(Value.UNSPECIFIED);
     return new Sequence(parent, env, body);
   }
 }

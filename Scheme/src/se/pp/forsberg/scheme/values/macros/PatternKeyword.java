@@ -43,7 +43,7 @@ public class PatternKeyword extends Keyword {
     @Override
     public Op match(Op op, Environment env, Value pattern, Value expression, Bindings bindings) {
       Value v = match(env, pattern, expression, bindings);
-      op.setValue(v);
+      op.getEvaluator().setValue(v);
       return op.getParent();
     }
   }
@@ -377,7 +377,7 @@ public class PatternKeyword extends Keyword {
   
   public Value apply(Pair expression, Environment env) {
     for (Rule rule: rules) {
-      int i = 1+1;
+      //int i = 1+1;
       Bindings bindings = new Bindings(rule.getAllIdentifiers());
       if (match(expression, rule.getPattern(), bindings)) {
         return rule.getAction().match(env, rule.getPattern(), expression, bindings);
@@ -392,13 +392,13 @@ public class PatternKeyword extends Keyword {
    */
   public Op apply(Op op, Pair expression, Environment env) {
     for (Rule rule: rules) {
-      int i = 1+1;
+      //int i = 1+1;
       Bindings bindings = new Bindings(rule.getAllIdentifiers());
       if (match(expression, rule.getPattern(), bindings)) {
         return rule.getAction().match(op, env, rule.getPattern(), expression, bindings);
       }
     }
-    return op.error("Invalid use of keyword", this);
+    return op.getEvaluator().error("Invalid use of keyword", this);
   }
   
 

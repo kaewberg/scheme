@@ -266,7 +266,7 @@ public class Macro extends PatternKeyword {
     // rewrite value
     public Op match(Op op, Environment env, Value pattern, Value expression, Bindings bindings) {
       Op result = new Op.Eval(op.getParent(), env);
-      op.setValue(replace(template, bindings));
+      op.getEvaluator().setValue(replace(template, bindings));
       return result;
     }
 

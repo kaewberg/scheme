@@ -15,6 +15,10 @@ public class Error extends Value {
     message = msg.toString();
     this.irritants = irritants;
   }
+  public Error(java.lang.String msg, Value irritants) {
+    message = msg;
+    this.irritants = irritants;
+  }
   public String getMessage() {
     return message;
   }

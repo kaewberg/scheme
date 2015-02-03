@@ -28,6 +28,8 @@ public class BasicKeywords extends Library {
       DefineOp(Op parent, Identifier id) { super(parent); this.id = id; }
       @Override
       public Op apply(Value v) {
+//        if (vs.length != 1) return evaluator.error("Multiple return values used in a single value context", Pair.makeList(vs));
+//        Value v = vs[0];
         env.define(id, v);
         setValue(Value.UNSPECIFIED);
         return parent;
@@ -66,13 +68,13 @@ public class BasicKeywords extends Library {
         // value = (lambda args y)
         public Op match(Op parent, Environment env, Value pattern, Value expression, Bindings bindings) {
           Value xv = bindings.get(x);
-          if (!xv.isIdentifier()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid define, expected identifier" + expression)));
+          if (!xv.isIdentifier()) return parent.getEvaluator().error(new RuntimeError(new IllegalArgumentException("Invalid define, expected identifier" + expression)));
           Value argvs = bindings.getValuesAsList(arg);
           Value yv = bindings.get(y);
           Value value = Pair.makeList(new Value[] { lambda, argvs, yv });
           Op result = new DefineOp(parent, (Identifier) xv);
           result = new Op.Eval(result);
-          result.setValue(value);
+          result.getEvaluator().setValue(value);
           return result;
         }
       }));
@@ -96,13 +98,13 @@ public class BasicKeywords extends Library {
         // value = (lambda arg y)
         public Op match(Op parent, Environment env, Value pattern, Value expression, Bindings bindings) {
           final Value xv =  bindings.get(x);
-          if (!xv.isIdentifier()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid define, expected identifier" + expression)));
+          if (!xv.isIdentifier()) return parent.getEvaluator().error(new RuntimeError(new IllegalArgumentException("Invalid define, expected identifier" + expression)));
           Value argv = bindings.get(arg);
           Value yv = bindings.get(y);
           Value value = Pair.makeList(new Value[] { lambda, argv, yv} );
           Op result = new DefineOp(parent, (Identifier) xv);
           result = new Op.Eval(result);
-          result.setValue(value);
+          result.getEvaluator().setValue(value);
           return result;
         }
       }));
@@ -124,11 +126,11 @@ public class BasicKeywords extends Library {
         // value = y
         public Op match(Op parent, Environment env, Value pattern, Value expression, Bindings bindings) {
           Value xv = bindings.get(x);
-          if (!xv.isIdentifier()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid define, expected identifier" + expression)));
+          if (!xv.isIdentifier()) parent.getEvaluator().error(new RuntimeError(new IllegalArgumentException("Invalid define, expected identifier" + expression)));
           Value yv = bindings.get(y);
           Op result = new DefineOp(parent, (Identifier) xv);
           result = new Op.Eval(result);
-          result.setValue(yv);
+          result.getEvaluator().setValue(yv);
           return result;
         }
       }));
@@ -199,14 +201,16 @@ public class BasicKeywords extends Library {
       }
       @Override
       public Op apply(Value v) {
+//        if (vs.length != 1) return evaluator.error("Multiple return values used in a single value context", Pair.makeList(vs));
+//        Value v = vs[0];
         Op result = parent;
         //result = new Op.Eval(result);
         if (v.asBoolean()) {
-          result.setValue(consequent);
+          result.getEvaluator().setValue(consequent);
         } else if (alternative != null){
-          result.setValue(alternative);
+          result.getEvaluator().setValue(alternative);
         } else {
-          result.setValue(Value.UNSPECIFIED);
+          result.getEvaluator().setValue(Value.UNSPECIFIED);
         }
         return result;
       }
@@ -256,7 +260,7 @@ public class BasicKeywords extends Library {
           Value vAlternate = bindings.get(alternate);
           Op result = new IfOp(parent, vConsequent, vAlternate);
           result = new Op.Eval(result);
-          result.setValue(vTest);
+          result.getEvaluator().setValue(vTest);
           return result;
         }
       }));
@@ -279,7 +283,7 @@ public class BasicKeywords extends Library {
           Value vConsequent = bindings.get(consequent);
           Op result = new IfOp(parent, vConsequent, null);
           result = new Op.Eval(result);
-          result.setValue(vTest);
+          result.getEvaluator().setValue(vTest);
           return result;
         }
       }));
@@ -295,6 +299,8 @@ public class BasicKeywords extends Library {
       }
       @Override
       public Op apply(Value v) {
+//        if (vs.length != 1) return evaluator.error("Multiple return values used in a single value context", Pair.makeList(vs));
+//        Value v = vs[0];
         setValue(Value.UNSPECIFIED);
         env.set(id, v);
         return parent;
@@ -327,11 +333,11 @@ public class BasicKeywords extends Library {
         // value = expression
         public Op match(Op parent, Environment env, Value pattern, Value expression, Bindings bindings) {
           Value vVariable = bindings.get(variable);
-          if (!vVariable.isIdentifier()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid set!, expected variable, not " + vVariable)));
+          if (!vVariable.isIdentifier()) return parent.getEvaluator().error(new RuntimeError(new IllegalArgumentException("Invalid set!, expected variable, not " + vVariable)));
           Value vExpression = bindings.get((Identifier) vVariable);
           Op result = new SetOp(parent, (Identifier) vVariable);
           result = new Op.Eval(result);
-          result.setValue(vExpression);
+          result.getEvaluator().setValue(vExpression);
           return result;
         }
       }));

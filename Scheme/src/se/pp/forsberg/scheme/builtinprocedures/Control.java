@@ -1,20 +1,17 @@
 package se.pp.forsberg.scheme.builtinprocedures;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import se.pp.forsberg.scheme.Evaluator;
+import se.pp.forsberg.scheme.Op;
 import se.pp.forsberg.scheme.SchemeException;
 import se.pp.forsberg.scheme.values.Boolean;
 import se.pp.forsberg.scheme.values.BuiltInProcedure;
-import se.pp.forsberg.scheme.values.Character;
+import se.pp.forsberg.scheme.values.Continuation;
 import se.pp.forsberg.scheme.values.Environment;
 import se.pp.forsberg.scheme.values.Identifier;
 import se.pp.forsberg.scheme.values.Nil;
 import se.pp.forsberg.scheme.values.Pair;
 import se.pp.forsberg.scheme.values.Procedure;
-import se.pp.forsberg.scheme.values.String;
 import se.pp.forsberg.scheme.values.Value;
-import se.pp.forsberg.scheme.values.Vector;
 import se.pp.forsberg.scheme.values.errors.RuntimeError;
 
 public class Control extends Library {
@@ -32,15 +29,24 @@ public class Control extends Library {
   }
   public class Apply extends BuiltInProcedure {
     public Apply(Environment env) { super("apply", env); }
-    @Override public Value apply(Value arguments) {
-      checkArguments(this, arguments, 1, java.lang.Integer.MAX_VALUE);
+    @Override
+    public Op apply(Op op, Environment env, Value arguments) {
+      checkArguments(this, arguments, Procedure.class, Value.class);
       Value v = ((Pair)arguments).getCar();
-      if (!v.isProcedure()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Expected procedure in " + getName())));
       Procedure proc = (Procedure) v;
-      Value args = ((Pair)arguments).getCdr();
+      Value args = ((Pair)((Pair)arguments).getCdr()).getCar();
+      op.getEvaluator().setValue(new Pair(proc, args));
+      return op;
+    }
+    @Override public Value apply(Value arguments) {
+      checkArguments(this, arguments, Procedure.class, Value.class);
+      Value v = ((Pair)arguments).getCar();
+      Procedure proc = (Procedure) v;
+      Value args = ((Pair)((Pair)arguments).getCdr()).getCar();
       return proc.apply(args);
     }
   }
+  /*
   public class Map extends BuiltInProcedure {
     public Map(Environment env) { super("map", env); }
     // ((a b c) (1 2 3)) -> ((a 1) . ((b c ) (2 3))
@@ -256,24 +262,114 @@ public class Control extends Library {
       return Value.UNSPECIFIED;
     }
   }
-  public class CallWithCurrentContinuation extends BuiltInProcedure.TODO {
-    public CallWithCurrentContinuation(java.lang.String name) {
-      super("call-with-current-continuation");
+  */
+  public class CallWithCurrentContinuation extends BuiltInProcedure {
+    public CallWithCurrentContinuation(Environment env) {
+      super("call-with-current-continuation", env);
+    }
+
+    @Override
+    public Value apply(Value arguments) {
+      throw new SchemeException(new RuntimeError(new IllegalArgumentException("call/cc not supported in recursive eval")));
+    }
+    @Override
+    public Op apply(Op op, Environment env, Value arguments) {
+      Op cc = op;
+      Evaluator ev = op.getEvaluator();
+      op = new Op.Apply(ev, cc, env);
+      Value v = ev.getValue();
+//      if (vs.length != 1) ev.error("Multiple return values used in a single value context", Pair.makeList(vs));
+//      Value v = vs[0];
+      ev.setValue(new Pair(v, new Pair(new Continuation(cc, 1), Nil.NIL)));
+      return op;
     }
   }
-  public class CallCC extends BuiltInProcedure.TODO {
-    public CallCC(java.lang.String name) {
-      super("call/cc");
+  public class CallCC extends BuiltInProcedure {
+    public CallCC(Environment env) {
+      super("call/cc", env);
+    }
+    @Override
+    public Value apply(Value arguments) {
+      throw new SchemeException(new RuntimeError(new IllegalArgumentException("call/cc not supported in recursive eval")));
+    }
+    @Override
+    public Op apply(Op op, Environment env, Value arguments) {
+      Op cc = op;
+      Evaluator ev = op.getEvaluator();
+      op = new Op.Apply(ev, cc, env);
+      Value v = ev.getValue();
+//      if (vs.length != 1) ev.error("Multiple return values used in a single value context", Pair.makeList(vs));
+//      Value v = vs[0];
+      ev.setValue(new Pair(v, new Pair(new Continuation(cc, 1), Nil.NIL)));
+      return op;
     }
   }
-  public class CallWithValues extends BuiltInProcedure.TODO {
-    public CallWithValues(java.lang.String name) {
-      super("call-with-values");
+  // This is a biggie.
+  // (dynamic-wind before thunk after)
+  // Setup a call to thunk in such a way that before is called before entering and
+  // after after exiting *even* if continuations are used.
+  // In other words,
+  // 1) if a continuation is returned from thunk and used later then before should
+  // be called when it is used
+  // 2) if a continuation is used in thunk to escape the dynamic-wind, then after
+  // should be called
+  // dynamic-wind can be nested
+  
+  public class DynamicWind extends BuiltInProcedure {
+    public DynamicWind(Environment env) {
+      super("dynamic-wind", env);
     }
-  }
-  public class DynamicWind extends BuiltInProcedure.TODO {
-    public DynamicWind(java.lang.String name) {
-      super("dynamic-wind");
+
+    @Override
+    // Solution was to add linked list of DynamicWind objects in env
+    public Value apply(Value arguments) {
+      checkArguments(this, arguments, Procedure.class, Procedure.class, Procedure.class);
+      Procedure before = (Procedure) ((Pair) arguments).getCar();
+      Procedure thunk = (Procedure) ((Pair)((Pair) arguments).getCdr()).getCar();
+      Procedure after = (Procedure) ((Pair)((Pair)((Pair) arguments).getCdr()).getCdr()).getCar();
+      before.apply(Nil.NIL);
+      Value result = thunk.apply(Nil.NIL);
+      after.apply(Nil.NIL);
+      return result;
+    }
+    @Override
+    public Op apply(Op op, Environment env, Value arguments) {
+      checkArguments(this, arguments, Procedure.class, Procedure.class, Procedure.class);
+      Procedure before = (Procedure) ((Pair) arguments).getCar();
+      Procedure thunk = (Procedure) ((Pair)((Pair) arguments).getCdr()).getCar();
+      Procedure after = (Procedure) ((Pair)((Pair)((Pair) arguments).getCdr()).getCdr()).getCar();
+      env.setDynamicWind(new se.pp.forsberg.scheme.DynamicWind(env.getDynamicWind(), before, after));
+      Op result = op;
+      // Use a hack to insert the return value from thunk
+      Op.SetValue setValue = new Op.SetValue(result, op.getEnvironment(), Value.UNSPECIFIED);
+      result = setValue;
+      result = new Op.Apply(op.getEvaluator(), result, op.getEnvironment());
+      result = new Op.SetValue(result, op.getEnvironment(), new Pair(after, Nil.NIL));
+      result = new PasteValue(op.getEvaluator(), result, op.getEnvironment(), setValue);
+      result = new Op.Apply(op.getEvaluator(), result, op.getEnvironment());
+      result = new Op.SetValue(result, op.getEnvironment(), new Pair(thunk, Nil.NIL));
+      result = new Op.Apply(op.getEvaluator(), result, op.getEnvironment());
+      result = new Op.SetValue(result, op.getEnvironment(), new Pair(before, Nil.NIL));
+      return result;
+    }
+    class PasteValue extends Op {
+      private Op.SetValue where;
+
+      public PasteValue(Evaluator evaluator, Op parent, Environment env, Op.SetValue where) {
+        super(evaluator, parent, env);
+        this.where = where;
+      }
+
+      @Override
+      public Op apply(Value v) {
+        where.setValue(v);
+        return parent;
+      }
+
+      @Override
+      protected String getDescription() {
+        return "PasteValue " + where;
+      }
     }
   }
 }

@@ -1,15 +1,14 @@
 package se.pp.forsberg.scheme;
 
-import javax.xml.ws.handler.MessageContext;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 import se.pp.forsberg.scheme.values.Environment;
-import se.pp.forsberg.scheme.values.Identifier;
+import se.pp.forsberg.scheme.values.Nil;
 import se.pp.forsberg.scheme.values.Pair;
-import se.pp.forsberg.scheme.values.String;
 import se.pp.forsberg.scheme.values.Procedure;
+import se.pp.forsberg.scheme.values.String;
 import se.pp.forsberg.scheme.values.Value;
-import se.pp.forsberg.scheme.values.macros.Keyword;
-import se.pp.forsberg.scheme.values.errors.*;
 import se.pp.forsberg.scheme.values.errors.Error;
 
 //
@@ -216,24 +215,33 @@ import se.pp.forsberg.scheme.values.errors.Error;
 
 public class Evaluator {
   
-  Value value;
+  Value value = null;
   
   public Value eval(Value v, Environment env) {
     Op stack = new Op.Done(this, env);
     stack = new Op.Eval(stack);
-    value = v;
+    //value = new Value[]{v};
     System.out.println("Eval " + v);
     while (!(stack instanceof Op.Done)) {
+      if (stack instanceof ErrorOp) {
+        throw new SchemeException(((ErrorOp) stack).error);
+      }
       // Debug
       System.out.println("-----------------------------------------------------");
       System.out.println(stack);
       System.out.println("value = " + value);
       if (stack.env != null) System.out.println("env = " + stack.env.vals());
-      stack = stack.apply(value);
+      stack = stack.apply(v);
     }
+//    if (value.length != 1) {
+//      return new Error("Expected single return value to eval", Pair.makeList(value));
+//    }
     return value;
   }
-  void setValue(Value v) {
+//  public void setValue(Value v) {
+//    value = new Value[]{v};
+//  }
+  public void setValue(Value v) {
     value = v;
   }
   class ErrorOp extends Op {
@@ -249,7 +257,7 @@ public class Evaluator {
     }
 
     @Override
-    protected Op apply(Value v) {
+    public Op apply(Value v) {
       setValue(error);
       return parent;
     }
@@ -260,8 +268,72 @@ public class Evaluator {
     }
     
   }
-  Op error(java.lang.String message, Value irritant) { return new ErrorOp(this, message, irritant); }
-  public Op error(Value error) {
-    return new ErrorOp(this, error);
+  public Op error(java.lang.String message, Value irritant) { return new ErrorOp(this, message, irritant); }
+  public Op error(Value error) { return new ErrorOp(this, error);  }
+  public Value getValue() { return value; }
+  
+  // Called when using a continuation
+  // Check in environment for dynamic-wind statements
+  // If new and old env shares a common parent dynamic-wind, then use only
+  // children of that
+  public Op callCountinuationWithDynamicWind(Op from, Op to, Value value) {
+    Deque<DynamicWind> fromStack = new ArrayDeque<DynamicWind>();
+    DynamicWind wind = from.getEnvironment().getDynamicWind();
+    while (wind != null) {
+      fromStack.add(wind);
+      wind = wind.getParent();
+    }
+    Deque<DynamicWind> toStack = new ArrayDeque<DynamicWind>();
+    wind = to.getEnvironment().getDynamicWind();
+    while (wind != null) {
+      toStack.add(wind);
+      wind = wind.getParent();
+    }
+    while (!fromStack.isEmpty() && !toStack.isEmpty() && fromStack.peek() == toStack.peek()) {
+      fromStack.pop();
+      toStack.pop();
+    }
+    // We now want to call after() in everything in fromStack
+    // and before in everything in toStack
+    // Inner afters should be called first
+    // Outer befores should be called first
+    // In other words:
+    //              wind a1
+    //         wind b    wind 2
+    //         wind c    wind 3
+    //         from       to
+    // to
+    // before 3
+    // before 2
+    // after b
+    // after c
+    //
+    // or rather
+    //
+    // to
+    // SetValue v
+    // Apply
+    // SetValue before3 ()
+    // Apply
+    // SetValue before2 ()
+    // Apply
+    // SetValue afterb ()
+    // Apply
+    // SetValue afterc ()
+    Op result = to;
+    result = new Op.SetValue(result, to.getEnvironment(), value);
+    while (!toStack.isEmpty()) {
+      wind = toStack.pop();
+      result = new Op.Apply(result, to.getEnvironment());
+      result = new Op.SetValue(result, to.getEnvironment(), new Pair(wind.getBefore(), Nil.NIL));
+    }
+    while (!fromStack.isEmpty()) {
+      wind = fromStack.removeLast();
+      result = new Op.Apply(result, from.getEnvironment());
+      result = new Op.SetValue(result, from.getEnvironment(), new Pair(wind.getAfter(), Nil.NIL));
+    }
+    return result;
   }
+  
+ 
 }

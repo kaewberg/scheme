@@ -27,7 +27,8 @@ public abstract class Op {
   public Op(Evaluator evaluator, Op parent) {
     this(evaluator, parent, parent.env);
   }
-  abstract protected Op apply(Value v);
+  //public abstract Op apply(Value v[]);
+  public abstract Op apply(Value v);
   @Override
   public String toString() {
     String description = getDescription();
@@ -53,7 +54,7 @@ public abstract class Op {
     }
 
     @Override
-    protected Op apply(Value v) {
+    public Op apply(Value v) {
       setValue(v);
       return this;
     }
@@ -97,8 +98,9 @@ public abstract class Op {
     }
 
     @Override
-    protected
-    Op apply(Value v) {
+    public Op apply(Value v) {
+      //if (vs.length != 1) return evaluator.error("Multiple return values used in a single value context", Pair.makeList(vs));
+      //Value v = vs[0];
       if (v.isIdentifier()) {
         Value result = env.lookup((Identifier) v);
         if (result == null) {
@@ -160,8 +162,9 @@ public abstract class Op {
     }
 
     @Override
-    protected
-    Op apply(Value v) {
+    public Op apply(Value v) {
+      //if (vs.length != 1) return evaluator.error("Multiple return values used in a single value context", Pair.makeList(vs));
+      //Value v = vs[0];
       Op result = new Cons2(evaluator, parent, env, v);
       result = new ListEval(result, env);
       evaluator.setValue(cdr);
@@ -188,8 +191,9 @@ public abstract class Op {
     }
 
     @Override
-    protected
-    Op apply(Value v) {
+    public Op apply(Value v) {
+      //if (vs.length != 1) return evaluator.error("Multiple return values used in a single value context", Pair.makeList(vs));
+      //Value v = vs[0];
       Op result = parent;
       setValue(new Pair(car, v));
       return result;
@@ -216,8 +220,9 @@ public abstract class Op {
     }
 
     @Override
-    protected
-    Op apply(Value v) {
+    public Op apply(Value v) {
+//      if (vs.length != 1) return evaluator.error("Multiple return values used in a single value context", Pair.makeList(vs));
+//      Value v = vs[0];
       Op result = parent;
       if (!v.isPair()) {
         setValue(v);
@@ -250,8 +255,9 @@ public abstract class Op {
     }
 
     @Override
-    protected
-    Op apply(Value v) {
+    public Op apply(Value v) {
+//      if (vs.length != 1) return evaluator.error("Multiple return values used in a single value context", Pair.makeList(vs));
+//      Value v = vs[0];
       if (!v.isPair()) {
         return evaluator.error("Expected pair in keyword apply", v);
       }
@@ -272,7 +278,7 @@ public abstract class Op {
    *                 apply x on y
    *                 value
    */
-  static class Apply extends Op {
+  public static class Apply extends Op {
     Apply(Op parent, Environment env) {
       super(parent, env);
     }
@@ -282,22 +288,22 @@ public abstract class Op {
     }
 
     @Override
-    protected
-    Op apply(Value v) {
+    public Op apply(Value v) {
+//      if (vs.length != 1) return evaluator.error("Multiple return values used in a single value context", Pair.makeList(vs));
+//      Value v = vs[0];
       if (!v.isPair())
         return error("Expected pair in procedure apply", v);
       Pair p = (Pair) v;
       if (!p.getCar().isProcedure())
         return error("Expected procedure in procedure apply", p.getCar());
       Procedure proc = (Procedure) p.getCar();
-      int i = 2;
+      //int i = 2;
       Op result = proc.apply(parent, env, p.getCdr());
       return result;
     }
 
     @Override
-    protected
-    String getDescription() {
+    protected String getDescription() {
       return "Apply";
     }
   }
@@ -305,13 +311,44 @@ public abstract class Op {
   public void setValue(Value v) {
     evaluator.setValue(v);
   }
-  public Op error(String string, Value v) {
+//  protected void setValue(Value v[]) {
+//    evaluator.setValue(v);
+//  }
+  protected Op error(String string, Value v) {
     return evaluator.error(string, v);
   }
   public Op getParent() {
     return parent;
   }
-  public Op error(Value error) {
+  protected Op error(Value error) {
     return evaluator.error(error);
+  }
+  public Evaluator getEvaluator() {
+    return evaluator;
+  }
+  public Environment getEnvironment() {
+    return env;
+  }
+  
+  // An op that just sets the current value to a preevaluated value
+  public static class SetValue extends Op {
+    private final Value returnValue;
+
+    public SetValue(Op parent, Environment environment, Value returnValue) {
+      super(parent, environment);
+      this.returnValue = returnValue;
+    }
+
+    @Override
+    public Op apply(Value unused) {
+      setValue(returnValue);
+      return parent;
+    }
+
+    @Override
+    protected java.lang.String getDescription() {
+      return "SetValue " + returnValue;
+    }
+    
   }
 }

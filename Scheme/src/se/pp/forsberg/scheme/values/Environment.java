@@ -12,6 +12,8 @@ import java.util.Set;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 
+import se.pp.forsberg.scheme.DynamicWind;
+import se.pp.forsberg.scheme.ErrorHandler;
 import se.pp.forsberg.scheme.SchemeException;
 import se.pp.forsberg.scheme.antlr.SchemeLexer;
 import se.pp.forsberg.scheme.antlr.SchemeParser;
@@ -32,6 +34,8 @@ public class Environment extends Value {
   private Deque<Context> contextStack = new ArrayDeque<Context>();
   private Map<Identifier, Value> values = new HashMap<Identifier, Value>();
   private File dir;
+  private DynamicWind dynamicWind;
+  private ErrorHandler errorHandler;
   protected Environment() {
     this(null, null);
   }
@@ -314,5 +318,14 @@ public class Environment extends Value {
   }
   public Object vals() {
     return values;
+  }
+  public DynamicWind getDynamicWind() {
+    return dynamicWind;
+  }
+  public ErrorHandler getErrorHandler() {
+    return errorHandler;
+  }
+  public void setDynamicWind(se.pp.forsberg.scheme.DynamicWind dynamicWind) {
+    this.dynamicWind = dynamicWind;
   }
 }
