@@ -25,6 +25,7 @@ public class Port extends Value {
   
   Parser parser;
   public final static Port STDIO = new Port(System.in, System.out);
+  public final static Port STDERR = new Port(null, System.err);
   
   public Port(InputStream in, OutputStream out) {
     setInput(in);

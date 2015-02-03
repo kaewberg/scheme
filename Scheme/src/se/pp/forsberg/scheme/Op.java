@@ -4,7 +4,9 @@ import se.pp.forsberg.scheme.values.Environment;
 import se.pp.forsberg.scheme.values.Identifier;
 import se.pp.forsberg.scheme.values.Pair;
 import se.pp.forsberg.scheme.values.Procedure;
+import se.pp.forsberg.scheme.values.String;
 import se.pp.forsberg.scheme.values.Value;
+import se.pp.forsberg.scheme.values.errors.Error;
 import se.pp.forsberg.scheme.values.macros.Keyword;
 
 public abstract class Op {
@@ -30,14 +32,14 @@ public abstract class Op {
   //public abstract Op apply(Value v[]);
   public abstract Op apply(Value v);
   @Override
-  public String toString() {
-    String description = getDescription();
+  public java.lang.String toString() {
+    java.lang.String description = getDescription();
     if (parent != null) {
       description = parent.toString() + "\n" + description;
     }
     return description;
   }
-  abstract protected String getDescription();
+  abstract protected java.lang.String getDescription();
 
   // Continuations
   // This file contains the basic ops needed for list evaluation
@@ -60,7 +62,7 @@ public abstract class Op {
     }
 
     @Override
-    protected String getDescription() {
+    protected java.lang.String getDescription() {
       return "Done";
     }
   }
@@ -142,7 +144,7 @@ public abstract class Op {
 
     @Override
     protected
-    String getDescription() {
+    java.lang.String getDescription() {
       return "Eval";
     }
   }
@@ -173,7 +175,7 @@ public abstract class Op {
 
     @Override
     protected
-    String getDescription() {
+    java.lang.String getDescription() {
       return "Cons x " + cdr;
     }
   }
@@ -201,7 +203,7 @@ public abstract class Op {
 
     @Override
     protected
-    String getDescription() {
+    java.lang.String getDescription() {
       return "Cons2 " + car + " x";
     }
   }
@@ -237,7 +239,7 @@ public abstract class Op {
 
     @Override
     protected
-    String getDescription() {
+    java.lang.String getDescription() {
       return "ListEval";
     }
   }
@@ -268,7 +270,7 @@ public abstract class Op {
 
     @Override
     protected
-    String getDescription() {
+    java.lang.String getDescription() {
       return "ApplyKeyword " + k; 
     }
   }
@@ -303,7 +305,7 @@ public abstract class Op {
     }
 
     @Override
-    protected String getDescription() {
+    protected java.lang.String getDescription() {
       return "Apply";
     }
   }
@@ -314,6 +316,9 @@ public abstract class Op {
 //  protected void setValue(Value v[]) {
 //    evaluator.setValue(v);
 //  }
+  protected Op error(java.lang.String string, Value v) {
+    return evaluator.error(new String(string), v);
+  }
   protected Op error(String string, Value v) {
     return evaluator.error(string, v);
   }
@@ -348,6 +353,40 @@ public abstract class Op {
     @Override
     protected java.lang.String getDescription() {
       return "SetValue " + returnValue;
+    }
+    
+  }
+  public static class ErrorOp extends Op {
+    private Value error;
+    private boolean continuable;
+    public ErrorOp(Evaluator evaluator, String message, Value irritants) {
+      super(evaluator, new Op.Done(evaluator));
+      this.error = new Error(message, irritants);
+    }
+
+    public ErrorOp(Evaluator evaluator, Value error) {
+      super(evaluator, new Op.Done(evaluator));
+      this.error = error;
+    }
+
+    public ErrorOp(Evaluator evaluator, Value error, boolean continuable) {
+      super(evaluator, new Op.Done(evaluator));
+      this.error = error;
+      this.continuable = continuable;
+    }
+
+    @Override
+    public Op apply(Value v) {
+      return env.getErrorHandler().apply(v, continuable);
+    }
+
+    @Override
+    protected java.lang.String getDescription() {
+      return "Error " + error;
+    }
+
+    public Value getError() {
+      return error;
     }
     
   }

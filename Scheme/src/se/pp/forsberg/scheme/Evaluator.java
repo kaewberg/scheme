@@ -214,6 +214,7 @@ import se.pp.forsberg.scheme.values.errors.Error;
  */
 
 public class Evaluator {
+  private static boolean DEBUG = false;
   
   Value value = null;
   
@@ -221,17 +222,20 @@ public class Evaluator {
     Op stack = new Op.Done(this, env);
     stack = new Op.Eval(stack);
     //value = new Value[]{v};
-    System.out.println("Eval " + v);
+    value = v;
+    if (DEBUG) System.out.println("Eval " + v);
     while (!(stack instanceof Op.Done)) {
-      if (stack instanceof ErrorOp) {
-        throw new SchemeException(((ErrorOp) stack).error);
+      if (stack instanceof Op.ErrorOp) {
+        throw new SchemeException(((Op.ErrorOp) stack).getError());
       }
       // Debug
-      System.out.println("-----------------------------------------------------");
-      System.out.println(stack);
-      System.out.println("value = " + value);
-      if (stack.env != null) System.out.println("env = " + stack.env.vals());
-      stack = stack.apply(v);
+      if (DEBUG) {
+        System.out.println("-----------------------------------------------------");
+        System.out.println(stack);
+        System.out.println("value = " + value);
+        if (stack.env != null) System.out.println("env = " + stack.env.vals());
+      }
+      stack = stack.apply(value);
     }
 //    if (value.length != 1) {
 //      return new Error("Expected single return value to eval", Pair.makeList(value));
@@ -244,33 +248,11 @@ public class Evaluator {
   public void setValue(Value v) {
     value = v;
   }
-  class ErrorOp extends Op {
-    private Value error;
-    public ErrorOp(Evaluator evaluator, java.lang.String message, Value irritants) {
-      super(evaluator, new Op.Done(evaluator));
-      this.error = new Error(new String(message), irritants);
-    }
-
-    public ErrorOp(Evaluator evaluator, Value error) {
-      super(evaluator, new Op.Done(evaluator));
-      this.error = error;
-    }
-
-    @Override
-    public Op apply(Value v) {
-      setValue(error);
-      return parent;
-    }
-
-    @Override
-    protected java.lang.String getDescription() {
-      return "Error " + error;
-    }
-    
-  }
-  public Op error(java.lang.String message, Value irritant) { return new ErrorOp(this, message, irritant); }
-  public Op error(Value error) { return new ErrorOp(this, error);  }
+  public Op error(java.lang.String message, Value irritant) { return new Op.ErrorOp(this,new String(message), irritant); }
+  public Op error(String message, Value irritant) { return new Op.ErrorOp(this, message, irritant); }
+  public Op error(Value error) { return new Op.ErrorOp(this, error);  }
   public Value getValue() { return value; }
+  public Op error(Value error, boolean continuable) { return new Op.ErrorOp(this, error, continuable); }
   
   // Called when using a continuation
   // Check in environment for dynamic-wind statements

@@ -14,6 +14,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
 import se.pp.forsberg.scheme.DynamicWind;
 import se.pp.forsberg.scheme.ErrorHandler;
+import se.pp.forsberg.scheme.Op;
 import se.pp.forsberg.scheme.SchemeException;
 import se.pp.forsberg.scheme.antlr.SchemeLexer;
 import se.pp.forsberg.scheme.antlr.SchemeParser;
@@ -93,14 +94,14 @@ public class Environment extends Value {
     return parent.lookup(identifier);
   }
   
-  protected void addBuiltIns() throws InstantiationException, IllegalAccessException, IllegalArgumentException, SecurityException, InvocationTargetException, NoSuchMethodException {
-    importLibrary(new se.pp.forsberg.scheme.builtinprocedures.BasicKeywords());
-    importLibrary(new se.pp.forsberg.scheme.builtinprocedures.DerivedExpressions());
-    importLibrary(new se.pp.forsberg.scheme.builtinprocedures.EquivalencePredicates());
-    importLibrary(new se.pp.forsberg.scheme.builtinprocedures.Numbers());
-    importLibrary(new se.pp.forsberg.scheme.builtinprocedures.Booleans());
-    importLibrary(new se.pp.forsberg.scheme.builtinprocedures.PairsAndLists());
-  }
+//  protected void addBuiltIns() throws InstantiationException, IllegalAccessException, IllegalArgumentException, SecurityException, InvocationTargetException, NoSuchMethodException {
+//    importLibrary(new se.pp.forsberg.scheme.builtinprocedures.BasicKeywords());
+//    importLibrary(new se.pp.forsberg.scheme.builtinprocedures.DerivedExpressions());
+//    importLibrary(new se.pp.forsberg.scheme.builtinprocedures.EquivalencePredicates());
+//    importLibrary(new se.pp.forsberg.scheme.builtinprocedures.Numbers());
+//    importLibrary(new se.pp.forsberg.scheme.builtinprocedures.Booleans());
+//    importLibrary(new se.pp.forsberg.scheme.builtinprocedures.PairsAndLists());
+//  }
   
 
   protected SchemeParser createParser(java.lang.String s) {
@@ -327,5 +328,8 @@ public class Environment extends Value {
   }
   public void setDynamicWind(se.pp.forsberg.scheme.DynamicWind dynamicWind) {
     this.dynamicWind = dynamicWind;
+  }
+  public void addErrorHandler(Procedure handler, Op op) {
+    this.errorHandler = new ErrorHandler(this.errorHandler, handler, op);
   }
 }

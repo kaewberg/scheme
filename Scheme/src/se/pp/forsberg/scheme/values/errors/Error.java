@@ -2,6 +2,7 @@ package se.pp.forsberg.scheme.values.errors;
 
 import se.pp.forsberg.scheme.values.Nil;
 import se.pp.forsberg.scheme.values.Value;
+import se.pp.forsberg.scheme.values.String;
 
 public class Error extends Value {
   Throwable x;
@@ -9,14 +10,14 @@ public class Error extends Value {
   Value irritants = Nil.NIL;
   public Error(Throwable x) {
     this.x = x;
-    message = x.getMessage();
+    message = new String(x.getMessage());
   }
-  public Error(Value msg, Value irritants) {
-    message = msg.toString();
+  public Error(String msg, Value irritants) {
+    message = msg;
     this.irritants = irritants;
   }
   public Error(java.lang.String msg, Value irritants) {
-    message = msg;
+    message = new String(msg);
     this.irritants = irritants;
   }
   public String getMessage() {

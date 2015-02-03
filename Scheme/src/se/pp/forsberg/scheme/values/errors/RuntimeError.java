@@ -8,7 +8,7 @@ public class RuntimeError extends Error {
     super(x);
   }
 
-  public RuntimeError(Value msg, Value irritants) {
+  public RuntimeError(String msg, Value irritants) {
     super(msg, irritants);
   }
 

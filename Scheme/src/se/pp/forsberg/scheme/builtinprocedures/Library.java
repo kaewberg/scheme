@@ -52,8 +52,16 @@ public class Library {
     libraries.put(PairsAndLists.getName(), new LibraryDefinition(PairsAndLists.class, "pairs_and_lists.scheme"));
     libraries.put(makeName("scheme", "cxr"), new LibraryDefinition("cxr.scheme"));
     libraries.put(Complex.getName(), new LibraryDefinition(Complex.class));
+    libraries.put(Characters.getName(), new LibraryDefinition(Characters.class, "characters.scheme"));
+    libraries.put(Symbols.getName(), new LibraryDefinition(Symbols.class));
+    libraries.put(Strings.getName(), new LibraryDefinition(Strings.class, "strings.scheme"));
+    libraries.put(Vectors.getName(), new LibraryDefinition(Vectors.class));
+    libraries.put(ByteVectors.getName(), new LibraryDefinition(ByteVectors.class));
     libraries.put(Inexact.getName(), new LibraryDefinition(Inexact.class));
     libraries.put(Control.getName(), new LibraryDefinition(Control.class));
+    libraries.put(Exceptions.getName(), new LibraryDefinition(Exceptions.class));
+    libraries.put(EnvironmentsAndEvaluation.getName(), new LibraryDefinition(EnvironmentsAndEvaluation.class));
+    libraries.put(Ports.getName(), new LibraryDefinition(Ports.class));
     
     libraries.put(makeName("scheme-impl", "scheme-report-environment", 7), new LibraryDefinition("scheme_report_environment_7.scheme"));
   }

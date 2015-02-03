@@ -95,5 +95,26 @@ public class Ports extends Library {
       return value.isPort()? Boolean.TRUE : Boolean.FALSE;
     }
   }
+  public class CurrentInputPort extends BuiltInProcedure {
+    public CurrentInputPort(Environment env) { super("current-input-port", env); }
+    @Override public Value apply(Value arguments) {
+      checkArguments(this, arguments, 0);
+      return Port.STDIO;
+    }
+  }
+  public class CurrentOutputPort extends BuiltInProcedure {
+    public CurrentOutputPort(Environment env) { super("current-output-port", env); }
+    @Override public Value apply(Value arguments) {
+      checkArguments(this, arguments, 0);
+      return Port.STDIO;
+    }
+  }
+  public class CurrentErrorPort extends BuiltInProcedure {
+    public CurrentErrorPort(Environment env) { super("current-error-port", env); }
+    @Override public Value apply(Value arguments) {
+      checkArguments(this, arguments, 0);
+      return Port.STDERR;
+    }
+  }
 
 }

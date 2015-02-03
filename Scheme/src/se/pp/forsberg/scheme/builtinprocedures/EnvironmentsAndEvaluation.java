@@ -10,7 +10,7 @@ import se.pp.forsberg.scheme.values.Value;
 import se.pp.forsberg.scheme.values.errors.RuntimeError;
 import se.pp.forsberg.scheme.values.numbers.Integer;
 
-public class EnvironmentLib extends Library {
+public class EnvironmentsAndEvaluation extends Library {
   public static Value getName() {
     return new Pair(new Identifier("scheme-impl"), new Pair(new Identifier("environment"), Nil.NIL));
   }

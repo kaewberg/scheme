@@ -1,6 +1,8 @@
 package se.pp.forsberg.scheme.builtinprocedures;
 
+import se.pp.forsberg.scheme.Op;
 import se.pp.forsberg.scheme.SchemeException;
+import se.pp.forsberg.scheme.Op.Apply;
 import se.pp.forsberg.scheme.values.Boolean;
 import se.pp.forsberg.scheme.values.BuiltInProcedure;
 import se.pp.forsberg.scheme.values.Environment;
@@ -34,6 +36,17 @@ public class Exceptions extends Library {
         return v;
       }
     }
+    @Override
+    public Op apply(Op op, Environment env, Value arguments) {
+      checkArguments(this, arguments, 2, Procedure.class);
+      Procedure handler = (Procedure) ((Pair)arguments).getCar();
+      Procedure thunk = (Procedure) ((Pair) ((Pair)arguments).getCdr()).getCar();
+      env.addErrorHandler(handler, op);
+      Op result = op;
+      result = new Op.Apply(op.getEvaluator(), result, env);
+      op.getEvaluator().setValue(new Pair(thunk, Nil.NIL));
+      return result;
+    }
   }
   public class Raise extends BuiltInProcedure {
     public Raise(Environment env) { super("raise", env); }
@@ -41,6 +54,12 @@ public class Exceptions extends Library {
       checkArguments(this, arguments, 1, Value.class);
       Value v1 = ((Pair)arguments).getCar();
       throw new SchemeException(v1);
+    }
+    @Override
+    public Op apply(Op op, Environment env, Value arguments) {
+      checkArguments(this, arguments, 1, Value.class);
+      Value v1 = ((Pair)arguments).getCar();
+      return op.getEvaluator().error(v1);
     }
   }
   public class RaiseContinuable extends BuiltInProcedure {
@@ -50,14 +69,29 @@ public class Exceptions extends Library {
       Value v1 = ((Pair)arguments).getCar();
       throw new SchemeException(v1, true);
     }
+    @Override
+    public Op apply(Op op, Environment env, Value arguments) {
+      checkArguments(this, arguments, 1, Value.class);
+      Value v1 = ((Pair)arguments).getCar();
+      return op.getEvaluator().error(v1, true);
+    }
   }
   public class _Error extends BuiltInProcedure {
     public _Error(Environment env) { super("error", env); }
     @Override public Value apply(Value arguments) {
       checkArguments(this, arguments, 1, Integer.MAX_VALUE);
-      Value msg = ((Pair)arguments).getCar();
+      if (!((Pair)arguments).getCar().isString()) throw new SchemeException(new RuntimeError("Expected string in " + getName(), arguments));
+      String msg = (String) ((Pair)arguments).getCar();
       Value irritants = ((Pair)arguments).getCdr();
       throw new SchemeException(new RuntimeError(msg, irritants));
+    }
+    @Override
+    public Op apply(Op op, Environment env, Value arguments) {
+      checkArguments(this, arguments, 1, Integer.MAX_VALUE);
+      if (!((Pair)arguments).getCar().isString()) return op.getEvaluator().error("Expected string in " + getName(), arguments);
+      String msg = (String) ((Pair)arguments).getCar();
+      Value irritants = ((Pair)arguments).getCdr();
+      return op.getEvaluator().error(msg, irritants);
     }
   }
   public class IsErrorObject extends BuiltInProcedure {
@@ -73,7 +107,7 @@ public class Exceptions extends Library {
     @Override public Value apply(Value arguments) {
       checkArguments(this, arguments, 1, Error.class);
       Error v1 = (Error) ((Pair)arguments).getCar();
-      return new String(v1.getMessage());
+      return v1.getMessage();
     }
   }
   public class ErrorObjectIrritants extends BuiltInProcedure {
