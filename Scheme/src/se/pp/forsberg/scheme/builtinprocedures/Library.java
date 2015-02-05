@@ -64,6 +64,7 @@ public class Library {
     libraries.put(EnvironmentsAndEvaluation.getName(), new LibraryDefinition(EnvironmentsAndEvaluation.class));
     libraries.put(Ports.getName(), new LibraryDefinition(Ports.class));
     libraries.put(Input.getName(), new LibraryDefinition(Input.class));
+    libraries.put(Output.getName(), new LibraryDefinition(Output.class));
     
     libraries.put(makeName("scheme-impl", "scheme-report-environment", 7), new LibraryDefinition("scheme_report_environment_7.scheme"));
   }

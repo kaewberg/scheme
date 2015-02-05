@@ -19,7 +19,7 @@ public class Pair extends Value {
   public static Value makeList(List<Value> values) {
     return makeList(values.toArray(new Value[0]));
   }
-  public static Value makeList(Value[] array) {
+  public static Value makeList(Value... array) {
     return makeList(array, 0);
   }
   protected static Value makeList(Value[] array, int i) {
@@ -668,7 +668,7 @@ public class Pair extends Value {
     return true;
   }
   @Override
-  protected void label(java.util.Set<ValueEqv> encounteredValues, java.util.Map<ValueEqv,Label> labels) {
+  protected void labelShared(java.util.Set<ValueEqv> encounteredValues, java.util.Map<ValueEqv,Label> labels) {
     ValueEqv me = new ValueEqv(this);
     if (labels.containsKey(me)) return;
     if (encounteredValues.contains(me)) {
@@ -680,6 +680,20 @@ public class Pair extends Value {
     encounteredValues.add(me);
     car.label(encounteredValues, labels);
     cdr.label(encounteredValues, labels);
+  }
+  @Override
+  protected void label(java.util.Set<ValueEqv> encounteredValues, java.util.Map<ValueEqv,Label> labels) {
+    ValueEqv me = new ValueEqv(this);
+    if (labels.containsKey(me)) return;
+    if (encounteredValues.contains(me)) {
+      int n = labels.size();
+      Label label = new Label(n, true);
+      labels.put(me, label);
+      return;
+    }
+    encounteredValues.add(me);
+    car.label(new HashSet<ValueEqv>(encounteredValues), labels);
+    cdr.label(new HashSet<ValueEqv>(encounteredValues), labels);
   }
   @Override
   public java.lang.String toString(Map<ValueEqv, Label> labels, Set<ValueEqv> definedLabels) {
@@ -769,9 +783,6 @@ public class Pair extends Value {
   
   @Override
   public java.lang.String toString() {
-    Set<Value.ValueEqv> encounteredValues = new HashSet<Value.ValueEqv>();
-    Map<Value.ValueEqv, Label> labels = new HashMap<Value.ValueEqv, Label>();
-    label(encounteredValues, labels);
-    return toString(labels, new HashSet<Value.ValueEqv>());
+    return toStringSafe();
   }
 }

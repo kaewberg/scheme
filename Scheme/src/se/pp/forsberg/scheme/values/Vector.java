@@ -83,7 +83,7 @@ public class Vector extends Value {
   }
 
   @Override
-  protected void label(java.util.Set<ValueEqv> encounteredValues, java.util.Map<ValueEqv,Label> labels) {
+  protected void labelShared(java.util.Set<ValueEqv> encounteredValues, java.util.Map<ValueEqv,Label> labels) {
     ValueEqv me = new ValueEqv(this);
     if (labels.containsKey(me)) return;
     if (encounteredValues.contains(me)) {
@@ -96,10 +96,20 @@ public class Vector extends Value {
     }
   }
   @Override
+  protected void label(java.util.Set<ValueEqv> encounteredValues, java.util.Map<ValueEqv,Label> labels) {
+    ValueEqv me = new ValueEqv(this);
+    if (labels.containsKey(me)) return;
+    if (encounteredValues.contains(me)) {
+      labels.put(me, new Label(labels.size(), true));
+      return;
+    }
+    encounteredValues.add(me);
+    for (Value v: vector) {
+      v.label(new HashSet<ValueEqv>(encounteredValues), labels);
+    }
+  }
+  @Override
   public java.lang.String toString() {
-    java.util.Set<ValueEqv> encounteredValues = new HashSet<Value.ValueEqv>();
-    Map<Value.ValueEqv, Label> labels = new HashMap<Value.ValueEqv, Label>();
-    label(encounteredValues, labels);
-    return toString(labels, new HashSet<Value.ValueEqv>());
+    return toStringSafe(); 
   }
 }

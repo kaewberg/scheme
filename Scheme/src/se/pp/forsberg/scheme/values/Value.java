@@ -1,9 +1,9 @@
 package se.pp.forsberg.scheme.values;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import se.pp.forsberg.scheme.values.Value.ValueEqv;
 
 
 
@@ -72,7 +72,21 @@ public abstract class Value {
     }
   }
   protected void label(Set<ValueEqv> encounteredValues, Map<ValueEqv, Label> labels) {}
+  protected void labelShared(Set<ValueEqv> encounteredValues, Map<ValueEqv, Label> labels) {}
   protected java.lang.String toString(Map<ValueEqv, Label> labels, Set<ValueEqv> definedLabels) {
     return toString(); 
+  }
+  public java.lang.String toStringSafe() {
+    Map<ValueEqv, Label> labels = new HashMap<Value.ValueEqv, Label>();
+    label(new HashSet<Value.ValueEqv>(), labels);
+    return toString(labels, new HashSet<ValueEqv>());
+  }
+  public java.lang.String toStringShared() {
+    Map<ValueEqv, Label> labels = new HashMap<Value.ValueEqv, Label>();
+    labelShared(new HashSet<Value.ValueEqv>(), labels);
+    return toString(labels, new HashSet<ValueEqv>());
+  }
+  public java.lang.String toStringSimple() {
+    return toString(new HashMap<Value.ValueEqv, Label>(), new HashSet<ValueEqv>());
   }
 }

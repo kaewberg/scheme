@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.PushbackInputStream;
 import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 
 import se.pp.forsberg.scheme.Parser;
 import se.pp.forsberg.scheme.SchemeException;
@@ -28,7 +29,7 @@ public class Port extends Value {
   private PushbackInputStream in;
   private BufferedReader reader;
   private OutputStream out;
-  private PrintWriter writer;
+  private Writer writer;
   private boolean inputOpen, outputOpen;
   
   Parser parser;
@@ -96,9 +97,20 @@ public class Port extends Value {
     if (in == null) throw new SchemeException(new FileError(new IllegalArgumentException("Port is write only")));
     return parser.read();
   }
-  public void write(Value value) {
+  public void write(Value value) throws IOException {
     if (out == null) throw new SchemeException(new FileError(new IllegalArgumentException("Port is read only")));
-    writer.println(value);
+    writer.write(value.toStringSafe());
+    newline();
+  }
+  public void writeShared(Value value) throws IOException {
+    if (out == null) throw new SchemeException(new FileError(new IllegalArgumentException("Port is read only")));
+    writer.write(value.toStringShared());
+    newline();
+  }
+  public void writeSimple(Value value) throws IOException {
+    if (out == null) throw new SchemeException(new FileError(new IllegalArgumentException("Port is read only")));
+    writer.write(value.toStringSimple());
+    newline();
   }
   public void close() {
     //Error error = null;
@@ -283,5 +295,36 @@ public class Port extends Value {
     } catch (IOException e) {
       throw new SchemeException(new ReadError(e));
     }
+  }
+  public void display(Value v) throws IOException {
+    if (out == null) throw new SchemeException(new RuntimeError("Not an output port", this));
+    if (v.isChar()) {
+      writer.write(((Character) v).getCharacter());
+      newline();
+    } else if (v.isString()) {
+      writer.write(((String) v).getString());
+      newline();
+    } else if (v.isIdentifier()) {
+      writer.write(((Identifier) v).getIdentifier());
+      newline();
+    } else {
+      write(v);
+    }
+  }
+  public void newline() throws IOException {
+    if (out == null) throw new SchemeException(new RuntimeError("Not an output port", this));
+    writer.write("\n");
+  }
+  public void write(java.lang.String s) throws IOException {
+    if (out == null) throw new SchemeException(new RuntimeError("Not an output port", this));
+    writer.write(s);
+  }
+  public void write(byte b) throws IOException {
+    if (out == null) throw new SchemeException(new RuntimeError("Not an output port", this));
+    out.write(b);
+  }
+  public void flush() throws IOException {
+    if (out == null) throw new SchemeException(new RuntimeError("Not an output port", this));
+    out.flush();
   }
 }
