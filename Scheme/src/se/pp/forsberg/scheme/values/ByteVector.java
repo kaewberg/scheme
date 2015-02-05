@@ -1,11 +1,19 @@
 package se.pp.forsberg.scheme.values;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ByteVector extends Value {
   List<Byte> vector;
   public ByteVector(List<Byte> vector) {
     this.vector = vector;
+  }
+  public ByteVector(byte[] byteArray) {
+    vector = new ArrayList<Byte>();
+    for (byte b: byteArray) {
+      vector.add(b);
+    }
   }
   public List<Byte> getVector() { return vector; }
   @Override

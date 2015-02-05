@@ -10,6 +10,7 @@ import java.util.List;
 
 import se.pp.forsberg.scheme.Token.Type;
 import se.pp.forsberg.scheme.values.ByteVector;
+import se.pp.forsberg.scheme.values.Environment;
 import se.pp.forsberg.scheme.values.Eof;
 import se.pp.forsberg.scheme.values.Identifier;
 import se.pp.forsberg.scheme.values.Label;
@@ -42,6 +43,15 @@ public class Parser {
   }
   
   public Value read() throws SchemeException {
+    return read(null, new Environment(null));
+  }
+  // Think...
+  // A label when defined is valid until the end of the enclosing construct
+  // '(#1=foo #1#)
+  // The label is also valid within the object labeled
+  // '(#1=(foo . #1#))
+  // We need to create a new labling env when starting eval of list or vector
+  public Value read(Label labelThis, Environment labels) throws SchemeException {
     try {
       // <datum> -> <simple datum> | <compund datum> | <label> = <datum> | <label> #
       // <simple datum> -> <boolean> | <number> | <character> | <string> | <identifier> | <bytevector>
@@ -57,50 +67,89 @@ public class Parser {
       }
       
       Value datum;
+      Value result;
       switch (token.getType()) {
         case VALUE:
         // number, identifier, boolean, character, string, label
           if (token.getValue() instanceof Label) {
             Label label = (Label) token.getValue();
-            datum = read();
-            defineLabel(label, datum);
+            if (label.isReference()) {
+              datum = labels.lookup(label);
+              if (datum == null) throw new SchemeException(new ReadError(new SyntaxErrorException("Undefined label " + label)));
+            } else { 
+              datum = read(label, labels);
+              //labels.define(label, datum);
+            }
             return datum;
           }
-          return token.getValue();
-        case QUOTE: return quote(read());
-        case QUASI_QUOTE: return quasiQuote(read());
-        case UNQUOTE: return unquote(read());
-        case UNQUOTE_SPLICING: return unquoteSplicing(read());
+          result = token.getValue();
+          if (labelThis != null) {
+            labels.define(labelThis, result);
+          }
+          return result;
+        case QUOTE:
+          result = quote(read(null, labels));
+          if (labelThis != null) {
+            labels.define(labelThis, result);
+          }
+          return result;
+        case QUASI_QUOTE:
+          result = quasiQuote(read(null, labels));
+          if (labelThis != null) {
+            labels.define(labelThis, result);
+          }
+          return result;
+        case UNQUOTE:
+          result = unquote(read(null, labels));
+          if (labelThis != null) {
+            labels.define(labelThis, result);
+          }
+          return result;
+        case UNQUOTE_SPLICING:
+          result = unquoteSplicing(read(null, labels));
+          if (labelThis != null) {
+            labels.define(labelThis, result);
+          }
+          return result;
         case BEGIN_VECTOR: 
           List<Value> vector = new ArrayList<Value>();
-          datum = read();
-          while (datum != null) {
+          result = new Vector(vector);
+          if (labelThis != null) {
+            labels.define(labelThis, result);
+          }
+          labels = new Environment(labels);
+          datum = read(null, labels);
+          while (datum != null && !datum.isEof()) {
             vector.add(datum);
-            datum = read();
+            datum = read(null, labels);
           }
           token = tokenizer.readToken();
           if (token.getType() != Type.RIGHT_PAREN) {
             throw new SchemeException(new ReadError(new SyntaxErrorException("Expected ) to terminate vector, not " + token)));
           }
-          return new Vector(vector);
+          return result;
         case BEGIN_BYTEVECTOR:
           List<Byte> byteVector = new ArrayList<Byte>();
-          datum = read();
-          while (datum != null) {
+          result = new ByteVector(byteVector);
+          if (labelThis != null) {
+            labels.define(labelThis, result);
+          }
+          datum = read(null, labels);
+          while (datum != null && !datum.isEof()) {
             if (!(datum instanceof Integer)) throw new SchemeException(new ReadError(new SyntaxErrorException("Non-integer value in byte vector")));
             Integer integer = (Integer) datum;
             if (!integer.isExact()) throw new SchemeException(new ReadError(new SyntaxErrorException("Byte vector values must be exact")));
             if (!integer.lessThan(new LongInteger(256, true))) throw new SchemeException(new ReadError(new SyntaxErrorException("Byte vector values too large")));
             byteVector.add(integer.asByte());
-            datum = read();
+            datum = read(null, labels);
           }
           token = tokenizer.readToken();
           if (token.getType() != Type.RIGHT_PAREN) {
             throw new SchemeException(new ReadError(new SyntaxErrorException("Expected ) to terminate bytevector, not " + token)));
           }
-          return new ByteVector(byteVector);
+          return result;
         case LEFT_PAREN:
-          return readList();
+          return readList(labelThis, labels);
         case RIGHT_PAREN:
         case DOT: tokenizer.pushback(token); return null;
         case EOF: return null;
@@ -112,14 +161,14 @@ public class Parser {
     }
     throw new SchemeException(new ReadError(new SyntaxErrorException("Cannot happen")));
   }
-  Value readList() throws IOException, SyntaxErrorException {
-    Value car = read();
+  Value readList(Label labelThis, Environment labels) throws IOException, SyntaxErrorException {
+    Value car = read(null, labels);
     if (car == null) {
       Token token = tokenizer.readToken();
       switch (token.getType()) {
       case RIGHT_PAREN: return NIL;
       case DOT:
-        Value cdr = read();
+        Value cdr = read(null, labels);
         if (cdr == null)  throw new SchemeException(new ReadError(new SyntaxErrorException("Expected value after .")));
         token = tokenizer.readToken();
         if (token.getType() != Type.RIGHT_PAREN) throw new SchemeException(new ReadError(new SyntaxErrorException("Expected ) after . value got " + token)));
@@ -127,7 +176,16 @@ public class Parser {
       default: throw new SchemeException(new ReadError(new SyntaxErrorException("Unexpected " + token)));
       }
     }
-    return new Pair(car, readList());
+    if (car.isEof()) throw new SchemeException(new ReadError(new SyntaxErrorException("Unexpected EOF")));
+     
+    if (labelThis != null) {
+      Pair result = new Pair(car, Nil.NIL);
+      labels.define(labelThis, result);
+      result.setCdr(readList(null, labels));
+      return result;
+    } else {
+      return new Pair(car, readList(null, labels));
+    }
   }
   protected void defineLabel(Label label, Value value) {
     // TODO actually define label

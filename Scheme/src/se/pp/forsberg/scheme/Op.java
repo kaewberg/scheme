@@ -390,4 +390,24 @@ public abstract class Op {
     }
     
   }
+
+  public static class PasteValue extends Op {
+    private Op.SetValue where;
+
+    public PasteValue(Evaluator evaluator, Op parent, Environment env, Op.SetValue where) {
+      super(evaluator, parent, env);
+      this.where = where;
+    }
+
+    @Override
+    public Op apply(Value v) {
+      where.setValue(v);
+      return parent;
+    }
+
+    @Override
+    protected java.lang.String getDescription() {
+      return "PasteValue " + where;
+    }
+  }
 }

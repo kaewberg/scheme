@@ -8,6 +8,7 @@ import java.io.PrintStream;
 import java.io.Reader;
 
 import se.pp.forsberg.scheme.values.Environment;
+import se.pp.forsberg.scheme.values.Port;
 import se.pp.forsberg.scheme.values.Value;
 import se.pp.forsberg.scheme.values.errors.Error;
 
@@ -17,7 +18,8 @@ public class Scheme {
     repl(new BufferedReader(new InputStreamReader(System.in)), System.out);
   }
   private void repl(Reader in, PrintStream out) throws InstantiationException, IllegalAccessException {
-    Parser parser = new Parser(in);
+   // Parser parser = new Parser(in);
+    Port port = Port.STDIO;
     
     out.println("Scheme r7rs");
     
@@ -26,7 +28,7 @@ public class Scheme {
       Value value;
       try {
         out.print("> ");
-        Value v = parser.read();
+        Value v = port.read();
         if (Environment.isImport(v)) {
            env.importLibrary(v);
            value = Value.UNSPECIFIED;

@@ -1,5 +1,10 @@
 package se.pp.forsberg.scheme.values;
 
+import java.util.Map;
+import java.util.Set;
+
+import se.pp.forsberg.scheme.values.Value.ValueEqv;
+
 
 
 public abstract class Value {
@@ -50,4 +55,24 @@ public abstract class Value {
   public Value eval(Environment env) { return this; }
   //abstract public Value replay(Continuation replay, Continuation continuation);
   
+  protected class ValueEqv {
+    Value value;
+    public ValueEqv(Value value) {
+      this.value = value;
+    }
+    public Value getValue() { return value; }
+    @Override
+    public int hashCode() {
+      return System.identityHashCode(value);
+    }
+    @Override
+    public boolean equals(Object obj) {
+      if (!(obj instanceof ValueEqv)) return false;
+      return value.eqv(((ValueEqv)obj).value);
+    }
+  }
+  protected void label(Set<ValueEqv> encounteredValues, Map<ValueEqv, Label> labels) {}
+  protected java.lang.String toString(Map<ValueEqv, Label> labels, Set<ValueEqv> definedLabels) {
+    return toString(); 
+  }
 }

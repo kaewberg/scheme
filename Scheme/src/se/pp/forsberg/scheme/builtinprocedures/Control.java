@@ -345,31 +345,12 @@ public class Control extends Library {
       result = setValue;
       result = new Op.Apply(op.getEvaluator(), result, op.getEnvironment());
       result = new Op.SetValue(result, op.getEnvironment(), new Pair(after, Nil.NIL));
-      result = new PasteValue(op.getEvaluator(), result, op.getEnvironment(), setValue);
+      result = new Op.PasteValue(op.getEvaluator(), result, op.getEnvironment(), setValue);
       result = new Op.Apply(op.getEvaluator(), result, op.getEnvironment());
       result = new Op.SetValue(result, op.getEnvironment(), new Pair(thunk, Nil.NIL));
       result = new Op.Apply(op.getEvaluator(), result, op.getEnvironment());
       result = new Op.SetValue(result, op.getEnvironment(), new Pair(before, Nil.NIL));
       return result;
-    }
-    class PasteValue extends Op {
-      private Op.SetValue where;
-
-      public PasteValue(Evaluator evaluator, Op parent, Environment env, Op.SetValue where) {
-        super(evaluator, parent, env);
-        this.where = where;
-      }
-
-      @Override
-      public Op apply(Value v) {
-        where.setValue(v);
-        return parent;
-      }
-
-      @Override
-      protected String getDescription() {
-        return "PasteValue " + where;
-      }
     }
   }
 }

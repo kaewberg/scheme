@@ -44,6 +44,7 @@ public class Library {
   
   private static Map<Value, LibraryDefinition> libraries = new HashMap<Value, LibraryDefinition>();
   static {
+    // Libraries ordered and named by sections in r7rs
     libraries.put(BasicKeywords.getName(), new LibraryDefinition(BasicKeywords.class));
     libraries.put(DerivedExpressions.getName(), new LibraryDefinition(DerivedExpressions.class, "derived_expressions.scheme"));
     libraries.put(EquivalencePredicates.getName(), new LibraryDefinition(EquivalencePredicates.class));
@@ -62,6 +63,7 @@ public class Library {
     libraries.put(Exceptions.getName(), new LibraryDefinition(Exceptions.class));
     libraries.put(EnvironmentsAndEvaluation.getName(), new LibraryDefinition(EnvironmentsAndEvaluation.class));
     libraries.put(Ports.getName(), new LibraryDefinition(Ports.class));
+    libraries.put(Input.getName(), new LibraryDefinition(Input.class));
     
     libraries.put(makeName("scheme-impl", "scheme-report-environment", 7), new LibraryDefinition("scheme_report_environment_7.scheme"));
   }

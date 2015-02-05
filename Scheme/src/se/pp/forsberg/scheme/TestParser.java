@@ -5,6 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.StringReader;
+import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -560,5 +562,59 @@ public class TestParser {
     assertEquals(expected, value);
     System.out.println(value);
   }
-  // TODO label
+  @Test
+  public void testLabel1() {
+    Parser parser = createParser("(#1=x #1#)");
+    Value value = parser.read();
+    Value expected =
+        new Pair(new Identifier("x"),
+        new Pair(new Identifier("x"), Nil.NIL));
+    assertEquals(expected, value);
+    Value car = ((Pair) value).getCar();
+    Value cadr = ((Pair)((Pair) value).getCdr()).getCar();
+    assertTrue(car == cadr);
+    System.out.println(value);
+  }
+  @Test
+  public void testLabel2() {
+    Parser parser = createParser("#1=(x . #1#)");
+    Value value = parser.read();
+    Identifier x = null;
+    System.out.println(value);
+    for (int i = 0; i < 10; i++) {
+      assertTrue(value.isPair());
+      Pair p = (Pair) value;
+      assertEquals(new Identifier("x"), p.getCar());
+      if (i == 0) x = (Identifier) p.getCar();
+      assertEquals(x, p.getCar());
+      value = p.getCdr();
+    }
+  }
+
+  @Test
+  public void testLabel3() {
+    Parser parser = createParser("#(#1=x #1#)");
+    Value value = parser.read();
+    Value expected = new Vector(Arrays.asList((Value) new Identifier("x"), new Identifier("x")));
+    assertEquals(expected, value);
+    List<Value> v = ((Vector)value).getVector();
+    assertEquals(v.get(0), v.get(1));
+    System.out.println(value);
+  }
+  @Test
+  public void testLabel4() {
+    Parser parser = createParser("#1=#(x #1#)");
+    Value value = parser.read();
+    Identifier x = null;
+    System.out.println(value);
+    for (int i = 0; i < 10; i++) {
+      assertTrue(value.isVector());
+      List<Value> v = ((Vector) value).getVector();
+      assertEquals(2, v.size());
+      assertEquals(new Identifier("x"), v.get(0));
+      if (i == 0) x = (Identifier) v.get(0);
+      assertEquals(x, v.get(0));
+      value = v.get(1);
+    }
+  }
 }

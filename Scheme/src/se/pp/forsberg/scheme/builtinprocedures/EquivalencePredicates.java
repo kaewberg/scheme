@@ -10,7 +10,7 @@ import se.pp.forsberg.scheme.values.Value;
 
 public class EquivalencePredicates extends Library {
   public static Value getName() {
-    return new Pair(new Identifier("scheme-impl"), new Pair(new Identifier("equal"), Nil.NIL));
+    return makeName("scheme-impl", "equal");
   }
 
   public class Equal extends BuiltInProcedure {

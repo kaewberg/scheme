@@ -364,7 +364,7 @@ datum returns [Value value] :
  | label '=' datum       { $value = $datum.value; /* TODO set label in env */ }
  | label '#'             { 
       try {
-        $value = new Label(Integer.parseInt($label.text));
+        $value = new Label(Integer.parseInt($label.text), true);
       } catch (NumberFormatException x) {
         throw new RecognitionException("Expected label to be decimal integer", null, _input, _ctx);
       }

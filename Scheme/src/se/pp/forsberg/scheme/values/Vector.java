@@ -1,6 +1,11 @@
 package se.pp.forsberg.scheme.values;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+
+import se.pp.forsberg.scheme.values.Value.ValueEqv;
 
 public class Vector extends Value {
   private List<Value> vector;
@@ -36,8 +41,20 @@ public class Vector extends Value {
     return vector.size() == 0 && other.vector.size() == 0;
   }
   @Override
-  public java.lang.String toString() {
+  protected java.lang.String toString(java.util.Map<ValueEqv,Label> labels, java.util.Set<ValueEqv> definedLabels) {
     StringBuffer result = new StringBuffer();
+    ValueEqv me = new ValueEqv(this);
+    
+    Label ref = labels.get(me);
+    if (ref != null) {
+      if (definedLabels.contains(me)) {
+        return ref.toString();
+      }
+      labels.put(me, ref);
+      Label def = new Label(ref.getLabel(), false);
+      result.append(def);
+      definedLabels.add(me);
+    }
     result.append("#(");
     boolean first = true;
     for (Value value: vector) {
@@ -46,7 +63,7 @@ public class Vector extends Value {
       } else {
         result.append(' ');
       }
-      result.append(value);
+      result.append(value.toString(labels, definedLabels));
     }
     result.append(')');
     return result.toString();
@@ -63,5 +80,26 @@ public class Vector extends Value {
   public boolean equals(Object obj) {
     if (!(obj instanceof Value)) return false;
     return equal((Value) obj); 
+  }
+
+  @Override
+  protected void label(java.util.Set<ValueEqv> encounteredValues, java.util.Map<ValueEqv,Label> labels) {
+    ValueEqv me = new ValueEqv(this);
+    if (labels.containsKey(me)) return;
+    if (encounteredValues.contains(me)) {
+      labels.put(me, new Label(labels.size(), true));
+      return;
+    }
+    encounteredValues.add(me);
+    for (Value v: vector) {
+      v.label(encounteredValues, labels);
+    }
+  }
+  @Override
+  public java.lang.String toString() {
+    java.util.Set<ValueEqv> encounteredValues = new HashSet<Value.ValueEqv>();
+    Map<Value.ValueEqv, Label> labels = new HashMap<Value.ValueEqv, Label>();
+    label(encounteredValues, labels);
+    return toString(labels, new HashSet<Value.ValueEqv>());
   }
 }

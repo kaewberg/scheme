@@ -123,8 +123,9 @@ public class Tokenizer {
         c = (char) i;
       }
       switch (c) {
-      case '=': return new Token(new Label(x));
-      // TODO case '#': return new Token(new LabelReference(x));
+      case '=': return new Token(new Label(x, false));
+      case '#': return new Token(new Label(x, true));
+      default: throw new SyntaxErrorException("Expected label");
       }
     }
     if (c == 'u' || c == 'U') {

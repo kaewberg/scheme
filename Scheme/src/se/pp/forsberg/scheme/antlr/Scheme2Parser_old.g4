@@ -37,7 +37,7 @@ datum returns [Value value]:
  | Label d=datum  { $value = $d.value; /* TODO set label in env */ }
  | LabelReference {
    try {
-        $value = new Label(Integer.parseInt($LabelReference.text));
+        $value = new Label(Integer.parseInt($LabelReference.text), true);
       } catch (NumberFormatException x) {
         throw new MyRecognitionException("Expected label to be decimal integer");
       }

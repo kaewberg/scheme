@@ -1,6 +1,10 @@
 package se.pp.forsberg.scheme.values;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import se.pp.forsberg.scheme.SchemeException;
 import se.pp.forsberg.scheme.values.errors.RuntimeError;
@@ -664,24 +668,53 @@ public class Pair extends Value {
     return true;
   }
   @Override
-  public java.lang.String toString() {
+  protected void label(java.util.Set<ValueEqv> encounteredValues, java.util.Map<ValueEqv,Label> labels) {
+    ValueEqv me = new ValueEqv(this);
+    if (labels.containsKey(me)) return;
+    if (encounteredValues.contains(me)) {
+      int n = labels.size();
+      Label label = new Label(n, true);
+      labels.put(me, label);
+      return;
+    }
+    encounteredValues.add(me);
+    car.label(encounteredValues, labels);
+    cdr.label(encounteredValues, labels);
+  }
+  @Override
+  public java.lang.String toString(Map<ValueEqv, Label> labels, Set<ValueEqv> definedLabels) {
+    StringBuffer result = new StringBuffer();
+    ValueEqv me = new ValueEqv(this);
+    
+    Label ref = labels.get(me);
+    if (ref != null) {
+      if (definedLabels.contains(me)) {
+        return ref.toString();
+      }
+      Label def = new Label(ref.getLabel(), false);
+      result.append(def);
+      definedLabels.add(me);
+    }
     if (car.isIdentifier() && cdr.isPair()) {
       Identifier id = (Identifier) car;
       Pair value = (Pair) cdr;
       if (id.getIdentifier().equalsIgnoreCase("quote")) {
-        return "'" + value.car.toString();
+        result.append("'").append(value.car.toString(labels, definedLabels));
+        return result.toString();
       }
       if (id.getIdentifier().equalsIgnoreCase("quasi-quote")) {
-        return "`" + value.car.toString();
+        result.append("`").append(value.car.toString(labels, definedLabels));
+        return result.toString();
       }
       if (id.getIdentifier().equalsIgnoreCase("unquote")) {
-        return "," + value.car.toString();
+        result.append(",").append(value.car.toString(labels, definedLabels));
+        return result.toString();
       }
       if (id.getIdentifier().equalsIgnoreCase("unquote-splicing")) {
-        return ",@" + value.car.toString();
+        result.append(",@").append(value.car.toString(labels, definedLabels));
+        return result.toString();
       }
     }
-    StringBuffer result = new StringBuffer();
     result.append('(');
     boolean first = true;
     for (Pair p = this; true; p = (Pair) p.cdr) {
@@ -689,12 +722,18 @@ public class Pair extends Value {
         first = false;
       } else {
         result.append(' ');
+        Value.ValueEqv him = new Value.ValueEqv(p);
+        Label label = labels.get(him);
+        if (label != null) {
+          result.append(label);
+          break;
+        }
       }
-      result.append(p.car);
+      result.append(p.car.toString(labels, definedLabels));
       if (!p.cdr.isPair()) {
         if (!p.cdr.isNull()) {
           result.append(" . ");
-          result.append(p.cdr);
+          result.append(p.cdr.toString(labels, definedLabels));
         }
         break;
       }
@@ -726,5 +765,13 @@ public class Pair extends Value {
   @Override
   public int hashCode() {
     return car.hashCode() ^ cdr.hashCode();
+  }
+  
+  @Override
+  public java.lang.String toString() {
+    Set<Value.ValueEqv> encounteredValues = new HashSet<Value.ValueEqv>();
+    Map<Value.ValueEqv, Label> labels = new HashMap<Value.ValueEqv, Label>();
+    label(encounteredValues, labels);
+    return toString(labels, new HashSet<Value.ValueEqv>());
   }
 }
