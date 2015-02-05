@@ -1,0 +1,4 @@
+(define-library (scheme time)
+  (import (scheme-impl system-interface))
+  (export current-jiffy current-second jiffies-per-second)
+))

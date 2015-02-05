@@ -1,0 +1,9 @@
+(define-library (scheme-impl system)
+  (import (scheme-impl base))
+  (export features)
+  (begin
+    (define (features)
+      '(r7rs exact-closed exact-complex ieee-float ratios 
+        jvm sjeme sjeme-1.0))
+  )
+)

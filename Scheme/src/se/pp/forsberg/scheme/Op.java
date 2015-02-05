@@ -45,7 +45,7 @@ public abstract class Op {
   // This file contains the basic ops needed for list evaluation
   // See keyword.apply and procedure.apply for more
 
-  static class Done extends Op {
+  public static class Done extends Op {
 
     public Done(Evaluator evaluator) {
       super(evaluator, null, null);

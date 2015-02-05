@@ -1,0 +1,4 @@
+(define-library (scheme read)
+  (import (scheme-impl input))
+  (export read)
+))

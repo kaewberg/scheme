@@ -1,0 +1,7 @@
+(define-library (scheme case-lambda)
+  (import (scheme-impl base))
+  (export case-lambda)
+  (begin
+    ; There's got to be a way to write this with define-syntax...
+    (define case-lambda (error "TODO" 'case-lambda))
+))

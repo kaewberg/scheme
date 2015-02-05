@@ -12,6 +12,9 @@
   (import (scheme-impl byte-vectors))
   (import (scheme-impl control))
   (import (scheme-impl exceptions))
+  (import (scheme-impl ports))
+  (import (scheme-impl input))
+  (import (scheme-impl output))
   
   (export * + - ... / < <= = => > >= abs and append apply assoc assq assv begin)
   (export binary-port? boolean=? boolean? bytevector bytevector-append bytevector-copy)
@@ -21,7 +24,7 @@
   (export char<? char=? char>=? char>? char? close-input-port close-output-port close-port)
   (export complex? cond cond-expand cons current-error-port current-input-port)
   (export current-output-port define define-record-type define-syntax define-values)
-  (export denominator do dynamic-wind 74 else eof-object eof-object? eq? equal? eqv?)
+  (export denominator do dynamic-wind else eof-object eof-object? eq? equal? eqv?)
   (export error error-object-irritants error-object-message error-object? even?)
   (export exact exact-integer-sqrt exact-integer? exact? expt features file-error?)
   (export floor floor-quotient floor-remainder floor/ flush-output-port for-each)

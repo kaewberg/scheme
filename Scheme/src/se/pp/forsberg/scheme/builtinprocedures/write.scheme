@@ -1,0 +1,4 @@
+(define-library (scheme write)
+  (import (scheme-impl output))
+  (export display write write-shared write-simple)
+))

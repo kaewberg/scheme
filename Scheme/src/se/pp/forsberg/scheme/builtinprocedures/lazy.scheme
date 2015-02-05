@@ -1,0 +1,5 @@
+(define-library (scheme lazy)
+  (import (scheme-impl base))
+  (import (scheme-impl derived-expressions))
+  (export delay delay-force force make-promise promise?)
+))

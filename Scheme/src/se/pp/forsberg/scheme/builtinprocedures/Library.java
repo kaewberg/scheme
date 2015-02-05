@@ -47,6 +47,7 @@ public class Library {
     // Libraries ordered and named by sections in r7rs
     libraries.put(BasicKeywords.getName(), new LibraryDefinition(BasicKeywords.class));
     libraries.put(DerivedExpressions.getName(), new LibraryDefinition(DerivedExpressions.class, "derived_expressions.scheme"));
+    libraries.put(makeName("scheme", "case-lambda"), new LibraryDefinition("case_lambda.scheme"));
     libraries.put(EquivalencePredicates.getName(), new LibraryDefinition(EquivalencePredicates.class));
     libraries.put(Numbers.getName(), new LibraryDefinition(Numbers.class));
     libraries.put(Booleans.getName(), new LibraryDefinition(Booleans.class));
@@ -65,8 +66,23 @@ public class Library {
     libraries.put(Ports.getName(), new LibraryDefinition(Ports.class));
     libraries.put(Input.getName(), new LibraryDefinition(Input.class));
     libraries.put(Output.getName(), new LibraryDefinition(Output.class));
+    libraries.put(SystemInterface.getName(), new LibraryDefinition(SystemInterface.class, "system_interface.scheme"));
     
+    libraries.put(makeName("scheme", "char"), new LibraryDefinition("char.scheme"));
+    libraries.put(makeName("scheme", "eval"), new LibraryDefinition("eval.scheme"));
+    libraries.put(makeName("scheme", "eval"), new LibraryDefinition("file.scheme"));
+    libraries.put(makeName("scheme", "lazy"), new LibraryDefinition("lazy.scheme"));
+    libraries.put(makeName("scheme", "load"), new LibraryDefinition("load.scheme"));
+    libraries.put(makeName("scheme", "process-context"), new LibraryDefinition("process-context.scheme"));
+    libraries.put(makeName("scheme", "read"), new LibraryDefinition("read.scheme"));
+    libraries.put(makeName("scheme", "repl"), new LibraryDefinition("repl.scheme"));
+    libraries.put(makeName("scheme", "time"), new LibraryDefinition("time.scheme"));
+    libraries.put(makeName("scheme", "write"), new LibraryDefinition("write.scheme"));
+    
+    //libraries.put(makeName("scheme-impl", "null-environment", 5), ;
+    //libraries.put(makeName("scheme-impl", "null-environment", 7), ;
     libraries.put(makeName("scheme-impl", "scheme-report-environment", 7), new LibraryDefinition("scheme_report_environment_7.scheme"));
+    libraries.put(makeName("scheme", "r5rs"), new LibraryDefinition("r5rs.scheme"));
   }
   
   private Value name;

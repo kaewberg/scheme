@@ -1,0 +1,4 @@
+(define-library (scheme process-context)
+  (import (scheme-impl system-interface))
+  (export command-line emergency-exit exit get-environment-variable get-environment-variables)
+))

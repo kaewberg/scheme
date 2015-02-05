@@ -292,7 +292,7 @@ public class Environment extends Value {
   public static Environment schemeReportEnvironment(int version) {
     Environment result = new Environment(null);
     switch (version) {
-    case 5: Library.load(Library.makeName("scheme-impl", "scheme-report-environment", 5), result); break;
+    case 5: Library.load(Library.makeName("scheme", "r5rs"), result); break;
     case 7: Library.load(Library.makeName("scheme-impl", "scheme-report-environment", 7), result); break;
     default:
       throw new SchemeException(new RuntimeError(new IllegalArgumentException("Only versions 5 and 7 are supported for scheme-report-environment")));
