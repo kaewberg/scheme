@@ -1,7 +1,7 @@
 package se.pp.forsberg.scheme.values;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
+import java.io.StringReader;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
@@ -9,15 +9,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-
 import se.pp.forsberg.scheme.DynamicWind;
 import se.pp.forsberg.scheme.ErrorHandler;
 import se.pp.forsberg.scheme.Op;
+import se.pp.forsberg.scheme.Parser;
 import se.pp.forsberg.scheme.SchemeException;
-import se.pp.forsberg.scheme.antlr.SchemeLexer;
-import se.pp.forsberg.scheme.antlr.SchemeParser;
 import se.pp.forsberg.scheme.builtinprocedures.Library;
 import se.pp.forsberg.scheme.values.errors.RuntimeError;
 
@@ -104,16 +100,14 @@ public class Environment extends Value {
 //  }
   
 
-  protected SchemeParser createParser(java.lang.String s) {
-    ANTLRInputStream stream = new ANTLRInputStream(s);
-    SchemeLexer lexer = new SchemeLexer(stream);
-    return new SchemeParser(new CommonTokenStream(lexer));
+  protected Parser createParser(java.lang.String s) {
+    return new Parser(new StringReader(s));
   }
   protected Value eval(Value value) {
     return value.eval(new Environment());
   }
   protected Value eval(java.lang.String source) {
-    return createParser(source).datumWs().value.eval(new Environment());
+    return createParser(source).read().eval(Environment.schemeReportEnvironment(7));
   }
   public void set(Identifier identifier, Value value) {
     if (values.containsKey(identifier)) {

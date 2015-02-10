@@ -45,6 +45,13 @@ public class Parser {
   public Value read() throws SchemeException {
     return read(null, new Environment(null));
   }
+  Token readToken() throws IOException, SyntaxErrorException {
+    Token token = tokenizer.readToken();
+    while (token.getType() == Token.Type.COMMENT || token.getType() == Token.Type.DIRECTIVE) {
+      token = tokenizer.readToken();
+    }
+    return token;
+  }
   // Think...
   // A label when defined is valid until the end of the enclosing construct
   // '(#1=foo #1#)
@@ -61,7 +68,7 @@ public class Parser {
       // <abbreviation> -> <abbreviation prefix> <datum>
       // <abbreviation prefix> -> ' | ` | , | ,@
       // <label> -> # <uinteger 10>
-      Token token = tokenizer.readToken();
+      Token token = readToken();
       if (token.getType() == Type.EOF) {
         return EOF;
       }
@@ -123,7 +130,7 @@ public class Parser {
             vector.add(datum);
             datum = read(null, labels);
           }
-          token = tokenizer.readToken();
+          token = readToken();
           if (token.getType() != Type.RIGHT_PAREN) {
             throw new SchemeException(new ReadError(new SyntaxErrorException("Expected ) to terminate vector, not " + token)));
           }
@@ -143,7 +150,7 @@ public class Parser {
             byteVector.add(integer.asByte());
             datum = read(null, labels);
           }
-          token = tokenizer.readToken();
+          token = readToken();
           if (token.getType() != Type.RIGHT_PAREN) {
             throw new SchemeException(new ReadError(new SyntaxErrorException("Expected ) to terminate bytevector, not " + token)));
           }
@@ -164,19 +171,21 @@ public class Parser {
   Value readList(Label labelThis, Environment labels) throws IOException, SyntaxErrorException {
     Value car = read(null, labels);
     if (car == null) {
-      Token token = tokenizer.readToken();
+      Token token = readToken();
       switch (token.getType()) {
       case RIGHT_PAREN: return NIL;
       case DOT:
         Value cdr = read(null, labels);
         if (cdr == null)  throw new SchemeException(new ReadError(new SyntaxErrorException("Expected value after .")));
-        token = tokenizer.readToken();
+        token = readToken();
         if (token.getType() != Type.RIGHT_PAREN) throw new SchemeException(new ReadError(new SyntaxErrorException("Expected ) after . value got " + token)));
         return cdr;
       default: throw new SchemeException(new ReadError(new SyntaxErrorException("Unexpected " + token)));
       }
     }
-    if (car.isEof()) throw new SchemeException(new ReadError(new SyntaxErrorException("Unexpected EOF")));
+    if (car.isEof()) {
+      throw new SchemeException(new ReadError(new SyntaxErrorException("Unexpected EOF")));
+    }
      
     if (labelThis != null) {
       Pair result = new Pair(car, Nil.NIL);

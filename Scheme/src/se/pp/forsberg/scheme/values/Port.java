@@ -79,12 +79,12 @@ public class Port extends Value {
   protected void setInput(InputStream in) {
     this.realIn = in;
     if (in instanceof PushbackInputStream) {
-      in = realIn;
+      this.in = (PushbackInputStream) in;
     } else {
-      in = new PushbackInputStream(realIn);
+      this.in = new PushbackInputStream(realIn);
     }
-    reader = new BufferedReader(new InputStreamReader(in));
-    parser = new Parser(in);  
+    reader = new BufferedReader(new InputStreamReader(this.in));
+    parser = new Parser(this.in);  
     inputOpen = true;
   }
   protected void setOutput(OutputStream out) {

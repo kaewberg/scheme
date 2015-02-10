@@ -15,4 +15,5 @@ public class RuntimeError extends Error {
   public RuntimeError(java.lang.String msg, Value irritants) {
     super(new String(msg), irritants);
   }
+  
 }

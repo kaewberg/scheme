@@ -1,7 +1,7 @@
 (define-library (scheme r5rs)
   (import (scheme-impl base))
   (import (scheme-impl derived-expressions))
-  (import (scheme-impl equivalence-predicates))
+  (import (scheme-impl equal))
   (import (rename (scheme-impl numbers) (exact inexact->exact) (inexact exact->inexact)))
   (import (scheme-impl booleans))
   (import (scheme-impl pairs-and-lists))

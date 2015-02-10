@@ -9,6 +9,7 @@ import se.pp.forsberg.scheme.values.Character;
 import se.pp.forsberg.scheme.values.Identifier;
 import se.pp.forsberg.scheme.values.Label;
 import se.pp.forsberg.scheme.values.String;
+import se.pp.forsberg.scheme.values.Value;
 import se.pp.forsberg.scheme.values.errors.ReadError;
 import se.pp.forsberg.scheme.values.numbers.Number;
 
@@ -17,7 +18,9 @@ public class Tokenizer {
   private PushbackReader reader;
   private final Parser parser;
   private Token pushedBack = null;
-  boolean foldCase = false;
+  private boolean foldCase = false;
+  private int offset = 0;
+  private boolean commentsReturned;
   
   public Tokenizer(Parser parser, Reader reader) {
     this.parser = parser;
@@ -31,17 +34,19 @@ public class Tokenizer {
       pushedBack = null;
       return result;
     }
-    skipIntertokenSpace();
+    Token ws = skipIntertokenSpace();
+    if (ws != null) return ws;
     int i;
     char c;
     
-    i = reader.read(); if (i < 0) return Token.EOF;
+    int start = offset;
+    i = read(); if (i < 0) return new Token(Token.Type.EOF, start, 0);
     c = (char) i;
     switch (c) {
-    case '(': return Token.LEFT_PAREN;
-    case ')': return Token.RIGHT_PAREN;
-    case '\'': return Token.QUOTE;
-    case '`': return Token.QUASI_QUOTE;
+    case '(': return new Token(Token.Type.LEFT_PAREN, start, 1);
+    case ')': return new Token(Token.Type.RIGHT_PAREN, start, 1);
+    case '\'': return new Token(Token.Type.QUOTE, start, 1);
+    case '`': return new Token(Token.Type.QUASI_QUOTE, start, 1);
     case ',': return parseUnquote();
     case '.': return parseDot();
     case '+':
@@ -53,33 +58,42 @@ public class Tokenizer {
     // Not boolean, character, java.lang.String or simple token
     // Can be number or identifier
     if (!isInitial(c)) {
-      return new Token(Number.parse(java.lang.Character.toString(c) + readUntilDelimiter()));
+      Number result = Number.parse(java.lang.Character.toString(c) + readUntilDelimiter());
+      return new Token(result, start, offset-start);
     }
-    return new Token(Identifier.parse(java.lang.Character.toString(c) + readUntilDelimiter(), foldCase));
+    Value result = Identifier.parse(java.lang.Character.toString(c) + readUntilDelimiter(), foldCase);
+    return new Token(result, start, offset-start);
   }
   // After ,
   protected Token parseUnquote() throws IOException {
-    int i = reader.read(); if (i < 0) return Token.UNQUOTE;
+    int start = offset - 1;
+    int i = read(); if (i < 0) return new Token(Token.Type.UNQUOTE, start, 1);
     char c = (char) i;
-    if (c == '@') return Token.UNQUOTE_SPLICING;
-    reader.unread(i);
-    return Token.UNQUOTE;
+    if (c == '@') return new Token(Token.Type.UNQUOTE_SPLICING, start, 2);
+    unread(i);
+    return new Token(Token.Type.UNQUOTE, start, 1);
   }
   // After .
   // Can be number or identifier
   protected Token parseDot() throws IOException {
-    int i = reader.read(); if (i < 0) return Token.DOT;
+    int start = offset - 1;
+    int i = read(); if (i < 0) return new Token(Token.Type.DOT, start, 1);
     char c = (char) i;
     if (!isDotSubsequent(c)) {
-      if (isDigit(c)) return new Token(Number.parse("." + c + readUntilDelimiter()));
-      reader.unread(i);
-      return Token.DOT;
+      if (isDigit(c)) {
+        Number result = Number.parse("." + c + readUntilDelimiter());
+        return new Token(result, start, offset-start);
+      }
+      unread(i);
+      return new Token(Token.Type.DOT, start, 1);
     }
-    return new Token(Identifier.parse("." + c + readUntilDelimiter(), foldCase));
+    Value result = Identifier.parse("." + c + readUntilDelimiter(), foldCase);
+    return new Token(result, start, offset - start);
   }
   // After +-
   // Can be number or identifier
   protected Token parseSign(char c) throws IOException {
+    int start = offset - 1;
     // Tricky business,
     // +j is an identifier, +i is a number as is +inf.0
     // +.a is an identifier +.5 is a number
@@ -87,100 +101,115 @@ public class Tokenizer {
     char sign = c;
     //java.lang.StringBuffer identifier = new StringBuffer();
     //identifier.append(c);
-    i = reader.read(); if (i < 0) return new Token(Identifier.parse(java.lang.Character.toString(sign), foldCase));
+    i = read(); if (i < 0) {
+      Value result = Identifier.parse(java.lang.Character.toString(sign), foldCase);
+      return new Token(result, start, offset - start);
+    }
     c = (char) i;
     if (isDelimiter(c)) {
-      reader.unread(i);
-      return new Token(Identifier.parse(java.lang.Character.toString(sign), foldCase));
+      unread(i);
+      return new Token(Identifier.parse(java.lang.Character.toString(sign), foldCase), start, 1);
     }
     java.lang.String token = java.lang.Character.toString(sign) + c + readUntilDelimiter(); 
     if (c == '.') {
       // +.
-      if (!isDotSubsequent(token.charAt(2))) return new Token(Number.parse(token));
-      return new Token(Identifier.parse(token, foldCase));
+      if (!isDotSubsequent(token.charAt(2))) {
+        return new Token(Number.parse(token), start, offset - start);
+      }
+      return new Token(Identifier.parse(token, foldCase), start, offset - start);
     }
     if (!isSignSubsequent(c)) {
-      return new Token(Number.parse(token));
+      return new Token(Number.parse(token), start, offset - start);
     }
-    return new Token(Identifier.parse(token, foldCase));
+    return new Token(Identifier.parse(token, foldCase), start, offset - start);
   }
   // After #
   protected Token parseOctothorpe() throws IOException, SyntaxErrorException {
+    int start = offset - 1;
     // Tricky, several things start with #
     // #t #true #f #false
     // #\x #\xFFFE #\t #\tab
     // #( #u8(
     //int hash = '#';
-    int i = reader.read(); if (i < 0) throw new SyntaxErrorException("Expected boolean, character, number or vector");
+    int i = read(); if (i < 0) throw new SyntaxErrorException("Expected boolean, character, number or vector");
     char c = (char) i;
-    if (c == '(') return Token.BEGIN_VECTOR;
+    if (c == '(') return new Token(Token.Type.BEGIN_VECTOR, start, 2);
     if (c >= '0' && c <= '9') {
       // label 
       int x = 0;
       while (c >= '0' && c <= '9') {
         x = x * 10 + (c - '0');
-        i = reader.read(); if (i < 0) throw new SyntaxErrorException("Expected label");
+        i = read(); if (i < 0) throw new SyntaxErrorException("Expected label");
         c = (char) i;
       }
       switch (c) {
-      case '=': return new Token(new Label(x, false));
-      case '#': return new Token(new Label(x, true));
+      case '=': return new Token(new Label(x, false), start, offset - start);
+      case '#': return new Token(new Label(x, true), start, offset - start);
       default: throw new SyntaxErrorException("Expected label");
       }
     }
     if (c == 'u' || c == 'U') {
-      i = reader.read(); if (i < 0) throw new SyntaxErrorException("Expected bytevector");
+      i = read(); if (i < 0) throw new SyntaxErrorException("Expected bytevector");
       c = (char) i; if (c != '8')  throw new SyntaxErrorException("Expected bytevector");
-      i = reader.read(); if (i < 0) throw new SyntaxErrorException("Expected bytevector");
+      i = read(); if (i < 0) throw new SyntaxErrorException("Expected bytevector");
       c = (char) i; if (c != '(')  throw new SyntaxErrorException("Expected bytevector");
-      return Token.BEGIN_BYTEVECTOR;
+      return new Token(Token.Type.BEGIN_BYTEVECTOR, start, 4);
     }
-    if ("tTfF".indexOf(c) >= 0) return new Token(Boolean.parse("#" + c + readUntilDelimiter()));
+    if ("tTfF".indexOf(c) >= 0) {
+      Value result = Boolean.parse("#" + c + readUntilDelimiter());
+      return new Token(result, start, offset - start);
+    }
     if (c == '\\') {
-      return new Token(Character.parse("#\\" + readUntilDelimiter()));
+      Value result = Character.parse("#\\" + readUntilDelimiter());
+      return new Token(result, start, offset - start);
     }
     if ("eEiIbBoOdDxX".indexOf(c) >= 0) {
-      return new Token(Number.parse("#" + c + readUntilDelimiter()));
+      Value result = Number.parse("#" + c + readUntilDelimiter());
+      return new Token(result, start, offset - start);
     }
     throw new SyntaxErrorException("Expected boolean, character, number or vector");
   }
   // After "
   protected Token parseString() throws IOException, SyntaxErrorException {
+    int start = offset - 1;
     java.lang.StringBuffer string = new StringBuffer();
-    int i = reader.read(); if (i < 0) throw new SyntaxErrorException("EOF in String literal");
+    int i = read(); if (i < 0) throw new SyntaxErrorException("EOF in String literal");
     char c = (char) i;
     string.append('"');
     while (c != '"') {
       string.append(c);
       if (c == '\\') {
-        i = reader.read(); if (i < 0) throw new SyntaxErrorException("EOF in String literal");
+        i = read(); if (i < 0) throw new SyntaxErrorException("EOF in String literal");
         c = (char) i;
         string.append(c);
       }
-      i = reader.read(); if (i < 0) throw new SyntaxErrorException("EOF in String literal");
+      i = read(); if (i < 0) throw new SyntaxErrorException("EOF in String literal");
       c = (char) i;
     }
     string.append('"');
-    return new Token(String.parse(string.toString()));
+    Value result = String.parse(string.toString());
+    return new Token(result, start, offset - start);
   }
   // After |
   protected Token parseVerticalLineIdentifier() throws IOException, SyntaxErrorException {
-    int i = reader.read(); if (i < 0) throw new SyntaxErrorException("EOF in vertical line delimited identifier");
+    int start = offset - 1;
+    int i = read(); if (i < 0) throw new SyntaxErrorException("EOF in vertical line delimited identifier");
     char c = (char) i;
     StringBuffer identifier = new StringBuffer();
     identifier.append('|');
     while (c != '|') {
       identifier.append(c);
       if (i == '\\') {
-        i = reader.read(); if (i < 0) throw new SyntaxErrorException("EOF in vertical line delimited identifier");
+        i = read(); if (i < 0) throw new SyntaxErrorException("EOF in vertical line delimited identifier");
         c = (char) i;
         identifier.append(c);
       }
-      i = reader.read(); if (i < 0) throw new SyntaxErrorException("EOF in vertical line delimited identifier");
+      i = read(); if (i < 0) throw new SyntaxErrorException("EOF in vertical line delimited identifier");
       c = (char) i;
     }
     identifier.append('|');
-    return new Token(Identifier.parse(identifier.toString(), foldCase));
+    Value result = Identifier.parse(identifier.toString(), foldCase);
+    return new Token(result, start, offset - start);
   }
  
   protected static boolean isDelimiter(char c) {
@@ -214,22 +243,32 @@ public class Tokenizer {
   
   protected java.lang.String readUntilDelimiter() throws IOException {
     StringBuffer result = new StringBuffer();
-    int i = reader.read(); if (i < 0) return result.toString();
+    int i = read(); if (i < 0) return result.toString();
     char c = (char) i;
     while (!isDelimiter(c)) {
       result.append(c);
-      i = reader.read(); if (i < 0) return result.toString();
+      i = read(); if (i < 0) return result.toString();
       c = (char) i;
     }
-    reader.unread(i);
+    unread(i);
     return result.toString();
   }
+  private int read() throws IOException {
+    int result = reader.read();
+    if (result >= 0) offset++;
+    return result;
+  }
+  private void unread(int i) throws IOException {
+    reader.unread(i);
+    offset--;
+  }
 
-  void skipIntertokenSpace() throws IOException {
+  Token skipIntertokenSpace() throws IOException {
+    int start = offset;
     int i;
     char c;
     while (true) {
-      i = reader.read(); if (i < 0) return;
+      i = read(); if (i < 0) return null;
       c = (char) i;
       switch (c) {
       // <whitespace> -> <intraline whitespace> | <line ending>
@@ -238,22 +277,23 @@ public class Tokenizer {
       case ' ': case '\t': case '\r': case '\n': break;
       // <comment> -> ; <all subsequent characters up to a line ending>
       case ';':
-        i = reader.read(); if (i < 0) return;
+        i = read(); if (i < 0) return new Token(Token.Type.COMMENT, start, 1);
         c = (char) i;
         while (c != '\r' && c != '\n') {
-          i = reader.read(); if (i < 0) return;
+          i = read(); if (i < 0) return new Token(Token.Type.COMMENT, start, offset - start);
           c = (char) i;
         }
         if (c == '\r') {
-          i = reader.read(); if (i < 0) return;
+          i = read(); if (i < 0) return new Token(Token.Type.COMMENT, start, offset - start);
           c = (char) i;
           if (c != '\n') {
-            reader.unread(i);
+            unread(i);
           }
         }
+        if (commentsReturned)  return new Token(Token.Type.COMMENT, start, offset - start);
         break;
       case '#':
-        i = reader.read(); if (i < 0) return;
+        i = read(); if (i < 0) return null;
         c = (char) i;
         switch (c) {
         // <comment> -> <nested comment>
@@ -263,30 +303,32 @@ public class Tokenizer {
         case '|':
           int commentLevel = 1;
           while (commentLevel > 0) {
-            i = reader.read(); if (i < 0) return;
+            i = read(); if (i < 0)  return new Token(Token.Type.COMMENT, start, offset - start);
             c = (char) i;
             if (c == '#') {
-              int i2 = reader.read(); if (i2 < 0) return;
+              int i2 = read(); if (i2 < 0) return new Token(Token.Type.COMMENT, start, offset - start);
               char c2 = (char) i2;
               if (c2 == '|') {
                 commentLevel++;
               } else {
-                reader.unread(i2);
+                unread(i2);
               }
             } else if (c == '|') {
-              int i2 = reader.read(); if (i2 < 0) return;
+              int i2 = read(); if (i2 < 0) return new Token(Token.Type.COMMENT, start, offset - start);
               char c2 = (char) i2;
               if (c2 == '#') {
                 commentLevel--;
               } else {
-                reader.unread(i2);
+                unread(i2);
               }
             }
           }
+          if (commentsReturned)  return new Token(Token.Type.COMMENT, start, offset - start);
           break;
         case ';':
           // <comment> -> #; <intertoken space> <datum>
           parser.read();
+          if (commentsReturned)  return new Token(Token.Type.COMMENT, start, offset - start);
           break;
         case '!':
           java.lang.String directive = readUntilDelimiter();
@@ -297,18 +339,23 @@ public class Tokenizer {
           } else {
             throw new SchemeException(new ReadError(new IllegalArgumentException("Unknown directive #! " +directive)));
           }
+          if (commentsReturned) return new Token(Token.Type.DIRECTIVE, start, offset - start);
           break;
         default:
-          reader.unread(i);
-          reader.unread('#');
-          return;
+          unread(i);
+          unread('#');
+          return null;
         }
         break;
       default:
-        reader.unread(i);
-        return;
+        unread(i);
+        return null;
       }
     }
+  }
+
+  public void setCommentsReturned(boolean b) {
+    commentsReturned = b;
   }
   
 }

@@ -31,7 +31,7 @@ public class TestTokenizer {
     } catch (SyntaxErrorException e) {
       throw new RuntimeException(e);
     }
-    while (token != Token.EOF) {
+    while (token.getType() != Token.Type.EOF) {
       tokens.add(token);
       try {
         token = tokenizer.readToken();

@@ -1,6 +1,6 @@
 package se.pp.forsberg.scheme.builtinprocedures;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.io.StringReader;
 
@@ -137,6 +137,17 @@ public class TestPairsAndList {
     assertEquals(eval("'(3 4 5)"), eval("(member 1 '(1 2 3 4 5) (lambda (y x) (= x (- y 2))))"));
   }
   @Test
+  public void testlistSet() {
+    assertEquals(eval("'(one two three)"), eval("(let ((ls (list 'one 'two 'five!)))(list-set! ls 2 'three)ls)"));
+    Exception ex = null;
+    try {
+      eval("(list-set! '(0 1 2) 1 \"oops\")");
+    } catch (Exception x) {
+      ex = x;
+    }
+    assertNotNull(ex);
+  }
+  @Test
   public void testAssoc() {
     assertEquals(eval("'(a 1)"), eval("(assq 'a '((a 1) (b 2) (c 3)))"));
     assertEquals(eval("'(b 2)"), eval("(assq 'b '((a 1) (b 2) (c 3)))"));
@@ -144,5 +155,13 @@ public class TestPairsAndList {
     assertEquals(eval("#f"),eval("(assq '(a a) '(((a a) 1) (b 2) (c 3)))"));
     assertEquals(eval("'((a a ) 1)"),eval("(assoc '(a a) '(((a a) 1) (b 2) (c 3)))"));
     assertEquals(eval("'(3 c)"), eval("(assoc 1 '((1 a) (2 b) (3 c) (4 d) (5 e)) (lambda (y x) (= x (- y 2))))"));
+  }
+  @Test
+  public void testListCopy() {
+    eval("(define a '(1 8 2 8)) ; a may be immutable");
+    eval("(define b (list-copy a))");
+    eval("(set-car! b 3) ; b is mutable");
+    assertEquals(eval("'(1 8 2 8)"), eval("a"));
+    assertEquals(eval("'(3 8 2 8)"), eval("b"));
   }
 }

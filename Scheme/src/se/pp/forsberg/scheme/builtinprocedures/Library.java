@@ -16,6 +16,7 @@ import se.pp.forsberg.scheme.values.Identifier;
 import se.pp.forsberg.scheme.values.Nil;
 import se.pp.forsberg.scheme.values.Pair;
 import se.pp.forsberg.scheme.values.Port;
+import se.pp.forsberg.scheme.values.String;
 import se.pp.forsberg.scheme.values.Value;
 import se.pp.forsberg.scheme.values.errors.FileError;
 import se.pp.forsberg.scheme.values.errors.RuntimeError;
@@ -29,14 +30,14 @@ public class Library {
   }
   protected static class LibraryDefinition {
     private final Class<? extends Library> libraryClass;
-    private final String resource;
+    private final java.lang.String resource;
     public LibraryDefinition(Class<? extends Library> libraryClass) { this.libraryClass = libraryClass; resource = null; }
-    public LibraryDefinition(String resource) { this.libraryClass = null; this.resource = resource; }
-    public LibraryDefinition(Class<? extends Library> libraryClass, String resource) { this.libraryClass = libraryClass; this.resource = resource; }
+    public LibraryDefinition(java.lang.String resource) { this.libraryClass = null; this.resource = resource; }
+    public LibraryDefinition(Class<? extends Library> libraryClass, java.lang.String resource) { this.libraryClass = libraryClass; this.resource = resource; }
     public Class<? extends Library> getLibraryClass() {
       return libraryClass;
     }
-    public String getResource() {
+    public java.lang.String getResource() {
       return resource;
     }
     
@@ -47,12 +48,10 @@ public class Library {
     // Libraries ordered and named by sections in r7rs
     libraries.put(BasicKeywords.getName(), new LibraryDefinition(BasicKeywords.class));
     libraries.put(DerivedExpressions.getName(), new LibraryDefinition(DerivedExpressions.class, "derived_expressions.scheme"));
-    libraries.put(makeName("scheme", "case-lambda"), new LibraryDefinition("case_lambda.scheme"));
     libraries.put(EquivalencePredicates.getName(), new LibraryDefinition(EquivalencePredicates.class));
     libraries.put(Numbers.getName(), new LibraryDefinition(Numbers.class));
     libraries.put(Booleans.getName(), new LibraryDefinition(Booleans.class));
     libraries.put(PairsAndLists.getName(), new LibraryDefinition(PairsAndLists.class, "pairs_and_lists.scheme"));
-    libraries.put(makeName("scheme", "cxr"), new LibraryDefinition("cxr.scheme"));
     libraries.put(Complex.getName(), new LibraryDefinition(Complex.class));
     libraries.put(Characters.getName(), new LibraryDefinition(Characters.class, "characters.scheme"));
     libraries.put(Symbols.getName(), new LibraryDefinition(Symbols.class));
@@ -67,8 +66,11 @@ public class Library {
     libraries.put(Input.getName(), new LibraryDefinition(Input.class));
     libraries.put(Output.getName(), new LibraryDefinition(Output.class));
     libraries.put(SystemInterface.getName(), new LibraryDefinition(SystemInterface.class, "system_interface.scheme"));
-    
+
+    libraries.put(makeName("scheme", "base"), new LibraryDefinition("base.scheme"));
+    libraries.put(makeName("scheme", "case-lambda"), new LibraryDefinition("case_lambda.scheme"));
     libraries.put(makeName("scheme", "char"), new LibraryDefinition("char.scheme"));
+    libraries.put(makeName("scheme", "cxr"), new LibraryDefinition("cxr.scheme"));
     libraries.put(makeName("scheme", "eval"), new LibraryDefinition("eval.scheme"));
     libraries.put(makeName("scheme", "eval"), new LibraryDefinition("file.scheme"));
     libraries.put(makeName("scheme", "lazy"), new LibraryDefinition("lazy.scheme"));
@@ -98,10 +100,10 @@ public class Library {
     exportSpecs.put(identifier, exportAs);
   }
   
-  public static Pair makeName(String string, String string2) {
+  public static Pair makeName(java.lang.String string, java.lang.String string2) {
    return new Pair(new Identifier(string), new Pair(new Identifier(string2), Nil.NIL));
   }
-  public static Pair makeName(String string, String string2, int v) {
+  public static Pair makeName(java.lang.String string, java.lang.String string2, int v) {
     return new Pair(new Identifier(string), new Pair(new Identifier(string2), new Pair(new LongInteger(v,true), Nil.NIL)));
    }
   
@@ -182,7 +184,7 @@ public class Library {
   // Read and evaluate all statements from a resource 
   protected void load(java.lang.String resource) {
     InputStream stream = getClass().getResourceAsStream(resource);
-    if (stream == null) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Missing resource " + resource)));
+    if (stream == null) throw new SchemeException(new RuntimeError("Missing resource ", Pair.makeList(new String(resource))));
     load(new Port(stream));
   }
   
@@ -191,7 +193,7 @@ public class Library {
     for (Identifier id: exportSpecs.keySet()) {
       Identifier exportAs = exportSpecs.get(id);
       Value value = env.lookup(id);
-      if (value == null) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Undefined value " + id)));
+      if (value == null) throw new SchemeException(new RuntimeError("Undefined value", Pair.makeList(id, getLibraryName())));
       result.put(exportAs, value);
     }
     return result;
@@ -311,7 +313,7 @@ public class Library {
       throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid export spec " + exportSpec)));
     }
   }
-  public static Library loadResource(String resource) {
+  public static Library loadResource(java.lang.String resource) {
     Library library = new Library();
     library.load(resource);
     return library;

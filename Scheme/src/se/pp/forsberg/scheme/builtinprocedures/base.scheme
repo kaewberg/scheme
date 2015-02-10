@@ -1,7 +1,7 @@
 (define-library (scheme base)
   (import (scheme-impl base))
   (import (scheme-impl derived-expressions))
-  (import (scheme-impl equivalence-predicates))
+  (import (scheme-impl equal))
   (import (scheme-impl numbers))
   (import (scheme-impl booleans))
   (import (scheme-impl pairs-and-lists))

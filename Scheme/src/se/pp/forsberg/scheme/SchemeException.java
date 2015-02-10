@@ -8,7 +8,8 @@ public class SchemeException extends RuntimeException {
   private final Value error;
   private final boolean continuable;
   public SchemeException(Error error) {
-    super(error.getThrowable().getMessage(), error.getThrowable());
+    super(error.getMessage().getString() + " " +error.getIrritants(), error.getThrowable());
+    
     this.error = error;
     this.continuable = false;
   }
