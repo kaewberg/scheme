@@ -3,8 +3,6 @@ package se.pp.forsberg.scheme.builtinprocedures;
 import se.pp.forsberg.scheme.values.Boolean;
 import se.pp.forsberg.scheme.values.BuiltInProcedure;
 import se.pp.forsberg.scheme.values.Environment;
-import se.pp.forsberg.scheme.values.Identifier;
-import se.pp.forsberg.scheme.values.Nil;
 import se.pp.forsberg.scheme.values.Pair;
 import se.pp.forsberg.scheme.values.Value;
 

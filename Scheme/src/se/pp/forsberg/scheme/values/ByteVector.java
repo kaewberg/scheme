@@ -1,7 +1,6 @@
 package se.pp.forsberg.scheme.values;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class ByteVector extends Value {

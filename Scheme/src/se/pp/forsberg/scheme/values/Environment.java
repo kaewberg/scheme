@@ -163,6 +163,13 @@ public class Environment extends Value {
         Identifier prefix = (Identifier) pair.getCar();
         return prefix(createImportSet(importSetToPrefix), prefix);
       }
+      if (id.equals("rename")) {
+        if (!pair.getCdr().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid import set " + importSet)));
+        pair = (Pair) pair.getCdr();
+        Value importSetToRenameFrom = pair.getCar();
+        Value renamings = pair.getCdr();
+        return rename(createImportSet(importSetToRenameFrom), renamings);
+      }
     }
     return readLibrary(pair);
   }

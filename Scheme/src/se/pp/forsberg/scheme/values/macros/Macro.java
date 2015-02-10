@@ -5,7 +5,6 @@ import java.util.List;
 
 import se.pp.forsberg.scheme.Op;
 import se.pp.forsberg.scheme.SchemeException;
-import se.pp.forsberg.scheme.Op.Eval;
 import se.pp.forsberg.scheme.values.Environment;
 import se.pp.forsberg.scheme.values.Identifier;
 import se.pp.forsberg.scheme.values.Nil;

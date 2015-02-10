@@ -1,11 +1,7 @@
 package se.pp.forsberg.scheme.values;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-
-import se.pp.forsberg.scheme.values.Value.ValueEqv;
 
 public class Vector extends Value {
   private List<Value> vector;

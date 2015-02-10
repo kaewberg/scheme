@@ -160,6 +160,11 @@ public class Parser {
         case RIGHT_PAREN:
         case DOT: tokenizer.pushback(token); return null;
         case EOF: return null;
+      case COMMENT:
+      case DIRECTIVE:
+        throw new RuntimeException("Bad programmer");
+      default:
+        break;
       }
     } catch (IOException x) {
       throw new SchemeException(new ReadError(x));

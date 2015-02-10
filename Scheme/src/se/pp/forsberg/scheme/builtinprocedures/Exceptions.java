@@ -2,7 +2,6 @@ package se.pp.forsberg.scheme.builtinprocedures;
 
 import se.pp.forsberg.scheme.Op;
 import se.pp.forsberg.scheme.SchemeException;
-import se.pp.forsberg.scheme.Op.Apply;
 import se.pp.forsberg.scheme.values.Boolean;
 import se.pp.forsberg.scheme.values.BuiltInProcedure;
 import se.pp.forsberg.scheme.values.Environment;

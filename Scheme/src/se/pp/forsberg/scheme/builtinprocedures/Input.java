@@ -3,8 +3,6 @@ package se.pp.forsberg.scheme.builtinprocedures;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.naming.directory.SchemaViolationException;
-
 import se.pp.forsberg.scheme.Op;
 import se.pp.forsberg.scheme.SchemeException;
 import se.pp.forsberg.scheme.values.Boolean;
@@ -292,8 +290,8 @@ public class Input extends Library {
         port = (Port) ((Pair) arguments).getCar();
       }
       Op result = op;
-      op.setValue(port.readByte());
-      return op;
+      result.setValue(port.readByte());
+      return result;
     }
   }
 
@@ -323,8 +321,8 @@ public class Input extends Library {
         port = (Port) ((Pair) arguments).getCar();
       }
       Op result = op;
-      op.setValue(port.peekByte());
-      return op;
+      result.setValue(port.peekByte());
+      return result;
     }
   }
 
@@ -354,8 +352,8 @@ public class Input extends Library {
         port = (Port) ((Pair) arguments).getCar();
       }
       Op result = op;
-      op.setValue(port.isByteReady());
-      return op;
+      result.setValue(port.isByteReady());
+      return result;
     }
   }
 
