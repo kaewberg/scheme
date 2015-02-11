@@ -64,7 +64,14 @@ public class Character extends Value {
   public static Value parse(java.lang.String string) {
     if (!string.startsWith("#\\")) throw new IllegalArgumentException("Invalid character " + string);
     if (string.length() == 3) return new Character(string.charAt(2));
-    if (string.charAt(2) == 'x') return new Character((char) java.lang.Integer.parseInt(string.substring(3), 16));
+    if (string.charAt(2) == 'x') {
+      if (string.length() == 3) return new Character('x');
+      try {
+        return new Character((char) java.lang.Integer.parseInt(string.substring(3), 16));
+      } catch (NumberFormatException x) {
+        throw new IllegalArgumentException("Expected hex character value");
+      }
+    }
     java.lang.String name = string.substring(2).toLowerCase();
     if (nameToChar.containsKey(name)) return new Character(nameToChar.get(name));
     throw new IllegalArgumentException("Invalid character name " + name);

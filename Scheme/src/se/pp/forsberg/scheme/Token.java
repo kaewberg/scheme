@@ -20,22 +20,28 @@ public class Token {
 //  
   private final Type type;
   private final Value value;
-  private final int offset, length;
-  public Token(Value value, int offset, int length) {
+  private final int offset, length, line, column;
+  public Token(Value value, int offset, int length, int line, int column) {
     this.type = Type.VALUE;
     this.value = value;
     this.offset = offset;
     this.length = length;
+    this.line = line;
+    this.column = column;
   }
-  Token(Type type, int offset, int length) {
+  Token(Type type, int offset, int length, int line, int column) {
     this.type = type;
     this.value = null;
     this.offset = offset;
     this.length = length;
+    this.line = line;
+    this.column = column;
   }
   
   public Type getType() { return type; }
   public Value getValue() { return value; }
   public int getOffset() { return offset; }
   public int getLength() { return length; }
+  public int getLine() { return line; }
+  public int getColumn() { return column; }
 }

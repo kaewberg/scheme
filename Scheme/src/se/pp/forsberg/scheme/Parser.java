@@ -82,7 +82,7 @@ public class Parser {
             Label label = (Label) token.getValue();
             if (label.isReference()) {
               datum = labels.lookup(label);
-              if (datum == null) throw new SchemeException(new ReadError(new SyntaxErrorException("Undefined label " + label)));
+              if (datum == null) throw new SchemeException(new ReadError(new SyntaxErrorException("Undefined label " + label, token)));
             } else { 
               datum = read(label, labels);
               //labels.define(label, datum);
@@ -132,7 +132,7 @@ public class Parser {
           }
           token = readToken();
           if (token.getType() != Type.RIGHT_PAREN) {
-            throw new SchemeException(new ReadError(new SyntaxErrorException("Expected ) to terminate vector, not " + token)));
+            throw new SchemeException(new ReadError(new SyntaxErrorException("Expected ) to terminate vector, not " + token, token)));
           }
           return result;
         case BEGIN_BYTEVECTOR:
@@ -143,16 +143,16 @@ public class Parser {
           }
           datum = read(null, labels);
           while (datum != null && !datum.isEof()) {
-            if (!(datum instanceof Integer)) throw new SchemeException(new ReadError(new SyntaxErrorException("Non-integer value in byte vector")));
+            if (!(datum instanceof Integer)) throw new SchemeException(new ReadError(new SyntaxErrorException("Non-integer value in byte vector", null)));
             Integer integer = (Integer) datum;
-            if (!integer.isExact()) throw new SchemeException(new ReadError(new SyntaxErrorException("Byte vector values must be exact")));
-            if (!integer.lessThan(new LongInteger(256, true))) throw new SchemeException(new ReadError(new SyntaxErrorException("Byte vector values too large")));
+            if (!integer.isExact()) throw new SchemeException(new ReadError(new SyntaxErrorException("Byte vector values must be exact", null)));
+            if (!integer.lessThan(new LongInteger(256, true))) throw new SchemeException(new ReadError(new SyntaxErrorException("Byte vector values too large", null)));
             byteVector.add(integer.asByte());
             datum = read(null, labels);
           }
           token = readToken();
           if (token.getType() != Type.RIGHT_PAREN) {
-            throw new SchemeException(new ReadError(new SyntaxErrorException("Expected ) to terminate bytevector, not " + token)));
+            throw new SchemeException(new ReadError(new SyntaxErrorException("Expected ) to terminate bytevector, not " + token, token)));
           }
           return result;
         case LEFT_PAREN:
@@ -171,7 +171,7 @@ public class Parser {
     } catch (SyntaxErrorException x) {
       throw new SchemeException(new ReadError(x));
     }
-    throw new SchemeException(new ReadError(new SyntaxErrorException("Cannot happen")));
+    throw new SchemeException(new ReadError(new SyntaxErrorException("Cannot happen", null)));
   }
   Value readList(Label labelThis, Environment labels) throws IOException, SyntaxErrorException {
     Value car = read(null, labels);
@@ -181,15 +181,15 @@ public class Parser {
       case RIGHT_PAREN: return NIL;
       case DOT:
         Value cdr = read(null, labels);
-        if (cdr == null)  throw new SchemeException(new ReadError(new SyntaxErrorException("Expected value after .")));
+        if (cdr == null)  throw new SchemeException(new ReadError(new SyntaxErrorException("Expected value after .", null)));
         token = readToken();
-        if (token.getType() != Type.RIGHT_PAREN) throw new SchemeException(new ReadError(new SyntaxErrorException("Expected ) after . value got " + token)));
+        if (token.getType() != Type.RIGHT_PAREN) throw new SchemeException(new ReadError(new SyntaxErrorException("Expected ) after . value got " + token, token)));
         return cdr;
-      default: throw new SchemeException(new ReadError(new SyntaxErrorException("Unexpected " + token)));
+      default: throw new SchemeException(new ReadError(new SyntaxErrorException("Unexpected " + token, token)));
       }
     }
     if (car.isEof()) {
-      throw new SchemeException(new ReadError(new SyntaxErrorException("Unexpected EOF")));
+      throw new SchemeException(new ReadError(new SyntaxErrorException("Unexpected EOF", null)));
     }
      
     if (labelThis != null) {

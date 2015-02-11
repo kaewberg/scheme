@@ -10,7 +10,7 @@ import se.pp.forsberg.scheme.values.Identifier;
 import se.pp.forsberg.scheme.values.Label;
 import se.pp.forsberg.scheme.values.String;
 import se.pp.forsberg.scheme.values.Value;
-import se.pp.forsberg.scheme.values.errors.ReadError;
+import se.pp.forsberg.scheme.values.numbers.LongInteger;
 import se.pp.forsberg.scheme.values.numbers.Number;
 
 public class Tokenizer {
@@ -20,7 +20,11 @@ public class Tokenizer {
   private Token pushedBack = null;
   private boolean foldCase = false;
   private int offset = 0;
-  private boolean commentsReturned;
+  private int line, column, lastColumn;
+  // Eclipse mode
+  // 1) Return tokens for comments and directives
+  // 2) Convert SchemeExceptions from recursive call to parser.read() back to SyntaxErrorExceptions
+  private boolean eclipseMode;
   
   public Tokenizer(Parser parser, Reader reader) {
     this.parser = parser;
@@ -40,13 +44,15 @@ public class Tokenizer {
     char c;
     
     int start = offset;
-    i = read(); if (i < 0) return new Token(Token.Type.EOF, start, 0);
+    int line = this.line;
+    int column = this.column;
+    i = read(); if (i < 0) return new Token(Token.Type.EOF, start, 0, line, column);
     c = (char) i;
     switch (c) {
-    case '(': return new Token(Token.Type.LEFT_PAREN, start, 1);
-    case ')': return new Token(Token.Type.RIGHT_PAREN, start, 1);
-    case '\'': return new Token(Token.Type.QUOTE, start, 1);
-    case '`': return new Token(Token.Type.QUASI_QUOTE, start, 1);
+    case '(': return new Token(Token.Type.LEFT_PAREN, start, 1, line, column);
+    case ')': return new Token(Token.Type.RIGHT_PAREN, start, 1, line, column);
+    case '\'': return new Token(Token.Type.QUOTE, start, 1, line, column);
+    case '`': return new Token(Token.Type.QUASI_QUOTE, start, 1, line, column);
     case ',': return parseUnquote();
     case '.': return parseDot();
     case '+':
@@ -58,42 +64,68 @@ public class Tokenizer {
     // Not boolean, character, java.lang.String or simple token
     // Can be number or identifier
     if (!isInitial(c)) {
-      Number result = Number.parse(java.lang.Character.toString(c) + readUntilDelimiter());
-      return new Token(result, start, offset-start);
+      java.lang.String rest = java.lang.Character.toString(c) + readUntilDelimiter();
+      try {
+        Number result = Number.parse(rest);
+        return new Token(result, start, offset-start, line, column);
+      } catch (Exception x) {
+        throw new SyntaxErrorException(x.getMessage(), new Token(LongInteger.ZERO, start, offset - start, line, column));
+      }
     }
-    Value result = Identifier.parse(java.lang.Character.toString(c) + readUntilDelimiter(), foldCase);
-    return new Token(result, start, offset-start);
+    java.lang.String rest = java.lang.Character.toString(c) + readUntilDelimiter();
+    try {
+      Value result = Identifier.parse(rest, foldCase);
+      return new Token(result, start, offset-start, line, column);
+    } catch (Exception x) {
+      throw new SyntaxErrorException(x.getMessage(), new Token(new Identifier(rest), start, offset - start, line, column));
+    }
   }
   // After ,
   protected Token parseUnquote() throws IOException {
+    int line = this.line;
+    int column = this.column;
     int start = offset - 1;
-    int i = read(); if (i < 0) return new Token(Token.Type.UNQUOTE, start, 1);
+    int i = read(); if (i < 0) return new Token(Token.Type.UNQUOTE, start, 1, line, column);
     char c = (char) i;
-    if (c == '@') return new Token(Token.Type.UNQUOTE_SPLICING, start, 2);
+    if (c == '@') return new Token(Token.Type.UNQUOTE_SPLICING, start, 2, line, column);
     unread(i);
-    return new Token(Token.Type.UNQUOTE, start, 1);
+    return new Token(Token.Type.UNQUOTE, start, 1, line, column);
   }
   // After .
   // Can be number or identifier
-  protected Token parseDot() throws IOException {
+  protected Token parseDot() throws IOException, SyntaxErrorException {
     int start = offset - 1;
-    int i = read(); if (i < 0) return new Token(Token.Type.DOT, start, 1);
+    int line = this.line;
+    int column = this.column;
+    int i = read(); if (i < 0) return new Token(Token.Type.DOT, start, 1, line, column);
     char c = (char) i;
     if (!isDotSubsequent(c)) {
       if (isDigit(c)) {
-        Number result = Number.parse("." + c + readUntilDelimiter());
-        return new Token(result, start, offset-start);
+        java.lang.String rest = "." + c + readUntilDelimiter();
+        try {
+          Number result = Number.parse(rest);
+          return new Token(result, start, offset-start, line, column);
+        } catch (Exception x) {
+          throw new SyntaxErrorException(x.getMessage(), new Token(LongInteger.ZERO, start, offset - start, line, column));
+        }
       }
       unread(i);
-      return new Token(Token.Type.DOT, start, 1);
+      return new Token(Token.Type.DOT, start, 1, line, column);
     }
-    Value result = Identifier.parse("." + c + readUntilDelimiter(), foldCase);
-    return new Token(result, start, offset - start);
+    java.lang.String rest = "." + c + readUntilDelimiter();
+    try {
+      Value result = Identifier.parse(rest, foldCase);
+      return new Token(result, start, offset - start, line, column);
+    } catch (Exception x) {
+      throw new SyntaxErrorException(x.getMessage(), new Token(new Identifier(rest), start, offset - start, line, column));
+    }
   }
   // After +-
   // Can be number or identifier
-  protected Token parseSign(char c) throws IOException {
+  protected Token parseSign(char c) throws IOException, SyntaxErrorException {
     int start = offset - 1;
+    int line = this.line;
+    int column = this.column;
     // Tricky business,
     // +j is an identifier, +i is a number as is +inf.0
     // +.a is an identifier +.5 is a number
@@ -103,113 +135,163 @@ public class Tokenizer {
     //identifier.append(c);
     i = read(); if (i < 0) {
       Value result = Identifier.parse(java.lang.Character.toString(sign), foldCase);
-      return new Token(result, start, offset - start);
+      return new Token(result, start, offset - start, line, column);
     }
     c = (char) i;
     if (isDelimiter(c)) {
       unread(i);
-      return new Token(Identifier.parse(java.lang.Character.toString(sign), foldCase), start, 1);
+      return new Token(Identifier.parse(java.lang.Character.toString(sign), foldCase), start, 1, line, column);
     }
     java.lang.String token = java.lang.Character.toString(sign) + c + readUntilDelimiter(); 
     if (c == '.') {
       // +.
       if (!isDotSubsequent(token.charAt(2))) {
-        return new Token(Number.parse(token), start, offset - start);
+        try {
+          return new Token(Number.parse(token), start, offset - start, line, column);
+        } catch (Exception x) {
+          throw new SyntaxErrorException(x.getMessage(), new Token(LongInteger.ZERO, start, offset - start, line, column));
+        }
       }
-      return new Token(Identifier.parse(token, foldCase), start, offset - start);
+      try {
+        return new Token(Identifier.parse(token, foldCase), start, offset - start, line, column);
+      } catch (Exception x) {
+        throw new SyntaxErrorException(x.getMessage(), new Token(new Identifier(token), start, offset - start, line, column));
+      }
     }
     if (!isSignSubsequent(c)) {
-      return new Token(Number.parse(token), start, offset - start);
+      try {
+        return new Token(Number.parse(token), start, offset - start, line, column);
+      } catch (Exception x) {
+        throw new SyntaxErrorException(x.getMessage(), new Token(LongInteger.ZERO, start, offset - start, line, column));
+      }
     }
-    return new Token(Identifier.parse(token, foldCase), start, offset - start);
+    try {
+      return new Token(Identifier.parse(token, foldCase), start, offset - start, line, column);
+    } catch (Exception x) {
+      throw new SyntaxErrorException(x.getMessage(), new Token(new Identifier(token), start, offset - start, line, column));
+    }
   }
   // After #
   protected Token parseOctothorpe() throws IOException, SyntaxErrorException {
     int start = offset - 1;
+    int line = this.line;
+    int column = this.column;
     // Tricky, several things start with #
     // #t #true #f #false
     // #\x #\xFFFE #\t #\tab
     // #( #u8(
     //int hash = '#';
-    int i = read(); if (i < 0) throw new SyntaxErrorException("Expected boolean, character, number or vector");
+    int i = read(); if (i < 0) throw new SyntaxErrorException("Expected boolean, character, number or vector", new Token(new Identifier("#"), start, 1, line, column));
     char c = (char) i;
-    if (c == '(') return new Token(Token.Type.BEGIN_VECTOR, start, 2);
+    if (c == '(') return new Token(Token.Type.BEGIN_VECTOR, start, 2, line, column);
     if (c >= '0' && c <= '9') {
       // label 
       int x = 0;
       while (c >= '0' && c <= '9') {
         x = x * 10 + (c - '0');
-        i = read(); if (i < 0) throw new SyntaxErrorException("Expected label");
+        i = read(); if (i < 0) throw new SyntaxErrorException("Expected label", new Token(new Label(x, true), start, offset-start, line, column));
         c = (char) i;
       }
       switch (c) {
-      case '=': return new Token(new Label(x, false), start, offset - start);
-      case '#': return new Token(new Label(x, true), start, offset - start);
-      default: throw new SyntaxErrorException("Expected label");
+      case '=': return new Token(new Label(x, false), start, offset - start, line, column);
+      case '#': return new Token(new Label(x, true), start, offset - start, line, column);
+      default: throw new SyntaxErrorException("Expected label", new Token(new Label(x, true), start, offset - start - 1, line, column));
       }
     }
     if (c == 'u' || c == 'U') {
-      i = read(); if (i < 0) throw new SyntaxErrorException("Expected bytevector");
-      c = (char) i; if (c != '8')  throw new SyntaxErrorException("Expected bytevector");
-      i = read(); if (i < 0) throw new SyntaxErrorException("Expected bytevector");
-      c = (char) i; if (c != '(')  throw new SyntaxErrorException("Expected bytevector");
-      return new Token(Token.Type.BEGIN_BYTEVECTOR, start, 4);
+      i = read(); if (i < 0) throw new SyntaxErrorException("Expected bytevector", new Token(Token.Type.BEGIN_BYTEVECTOR, start, offset - start, line, column));
+      c = (char) i; if (c != '8')  throw new SyntaxErrorException("Expected bytevector", new Token(Token.Type.BEGIN_BYTEVECTOR, start, offset - start, line, column));
+      i = read(); if (i < 0) throw new SyntaxErrorException("Expected bytevector", new Token(Token.Type.BEGIN_BYTEVECTOR, start, offset - start, line, column));
+      c = (char) i; if (c != '(')  throw new SyntaxErrorException("Expected bytevector", new Token(Token.Type.BEGIN_BYTEVECTOR, start, offset - start, line, column));
+      return new Token(Token.Type.BEGIN_BYTEVECTOR, start, 4, line, column);
     }
     if ("tTfF".indexOf(c) >= 0) {
-      Value result = Boolean.parse("#" + c + readUntilDelimiter());
-      return new Token(result, start, offset - start);
+      java.lang.String rest = "#" + c + readUntilDelimiter();
+      try {
+        Value result = Boolean.parse(rest);
+        return new Token(result, start, offset - start, line, column);
+      } catch (Exception x) {
+        throw new SyntaxErrorException(x.getMessage(), new Token(Boolean.FALSE, start, offset - start, line, column));
+      } 
     }
     if (c == '\\') {
-      Value result = Character.parse("#\\" + readUntilDelimiter());
-      return new Token(result, start, offset - start);
+      i = read(); if (i < 0) throw new SyntaxErrorException("Expected character", new Token(new Character('a'), start, offset - start, line, column));
+      c = (char) i;
+      if (isDelimiter(c)) {
+        return new Token(new Character(c), start, offset - start, line, column);
+      }
+      java.lang.String rest = "#\\" + c + readUntilDelimiter();
+      try {
+        Value result = Character.parse(rest);
+        return new Token(result, start, offset - start, line, column);
+      } catch (Exception x) {
+        throw new SyntaxErrorException(x.getMessage(), new Token(new Character('a'), start, offset - start, line, column));
+      }
     }
     if ("eEiIbBoOdDxX".indexOf(c) >= 0) {
-      Value result = Number.parse("#" + c + readUntilDelimiter());
-      return new Token(result, start, offset - start);
+      java.lang.String rest = "#" + c + readUntilDelimiter();
+      try {
+        Value result = Number.parse(rest);
+        return new Token(result, start, offset - start, line, column);
+      } catch (Exception x) {
+        throw new SyntaxErrorException(x.getMessage(), new Token(LongInteger.ZERO, start, offset - start, line, column));
+      }
     }
-    throw new SyntaxErrorException("Expected boolean, character, number or vector");
+    throw new SyntaxErrorException("Expected boolean, character, number or vector", new Token(new Identifier("#" + c), start, 2, line, column));
   }
   // After "
   protected Token parseString() throws IOException, SyntaxErrorException {
     int start = offset - 1;
+    int line = this.line;
+    int column = this.column;
     java.lang.StringBuffer string = new StringBuffer();
-    int i = read(); if (i < 0) throw new SyntaxErrorException("EOF in String literal");
+    int i = read(); if (i < 0) throw new SyntaxErrorException("EOF in String literal", new Token(new String(string), start, offset - start, line, column));
     char c = (char) i;
     string.append('"');
     while (c != '"') {
       string.append(c);
       if (c == '\\') {
-        i = read(); if (i < 0) throw new SyntaxErrorException("EOF in String literal");
+        i = read(); if (i < 0) throw new SyntaxErrorException("EOF in String literal", new Token(new String(string), start, offset - start, line, column));
         c = (char) i;
         string.append(c);
       }
-      i = read(); if (i < 0) throw new SyntaxErrorException("EOF in String literal");
+      i = read(); if (i < 0) throw new SyntaxErrorException("EOF in String literal", new Token(new String(string), start, offset - start, line, column));
       c = (char) i;
     }
     string.append('"');
-    Value result = String.parse(string.toString());
-    return new Token(result, start, offset - start);
+    try {
+      Value result = String.parse(string.toString());
+      return new Token(result, start, offset - start, line, column);
+    } catch (Exception x) {
+      throw new SyntaxErrorException(x.getMessage(), new Token(new String(string), start, offset - start, line, column)); 
+    }
   }
   // After |
   protected Token parseVerticalLineIdentifier() throws IOException, SyntaxErrorException {
     int start = offset - 1;
-    int i = read(); if (i < 0) throw new SyntaxErrorException("EOF in vertical line delimited identifier");
+    int line = this.line;
+    int column = this.column;
+    int i = read(); if (i < 0) throw new SyntaxErrorException("EOF in vertical line delimited identifier", new Token(new Identifier(""), start, start - offset, line, column));
     char c = (char) i;
     StringBuffer identifier = new StringBuffer();
     identifier.append('|');
     while (c != '|') {
       identifier.append(c);
       if (i == '\\') {
-        i = read(); if (i < 0) throw new SyntaxErrorException("EOF in vertical line delimited identifier");
+        i = read(); if (i < 0) throw new SyntaxErrorException("EOF in vertical line delimited identifier", new Token(new Identifier(identifier), start, start - offset, line, column));
         c = (char) i;
         identifier.append(c);
       }
-      i = read(); if (i < 0) throw new SyntaxErrorException("EOF in vertical line delimited identifier");
+      i = read(); if (i < 0) throw new SyntaxErrorException("EOF in vertical line delimited identifier", new Token(new Identifier(identifier), start, start - offset, line, column));
       c = (char) i;
     }
     identifier.append('|');
-    Value result = Identifier.parse(identifier.toString(), foldCase);
-    return new Token(result, start, offset - start);
+    try {
+      Value result = Identifier.parse(identifier.toString(), foldCase);
+      return new Token(result, start, offset - start, line, column);
+    } catch (Exception x) {
+      throw new SyntaxErrorException(x.getMessage(), new Token(new Identifier(identifier), start, start - offset, line, column));
+    }
   }
  
   protected static boolean isDelimiter(char c) {
@@ -255,19 +337,34 @@ public class Tokenizer {
   }
   private int read() throws IOException {
     int result = reader.read();
-    if (result >= 0) offset++;
+    if (result >= 0) {
+      offset++;
+      column++;
+      if (result == '\n') {
+        lastColumn = column;
+        column = 0;
+        line++;
+      }
+    }
     return result;
   }
   private void unread(int i) throws IOException {
     reader.unread(i);
     offset--;
+    column--;
+    if (i == '\n') {
+      column = lastColumn;
+      line--;
+    }
   }
 
-  Token skipIntertokenSpace() throws IOException {
-    int start = offset;
+  Token skipIntertokenSpace() throws IOException, SyntaxErrorException {
     int i;
     char c;
     while (true) {
+      int start = offset;
+      int line = this.line;
+      int column = this.column;
       i = read(); if (i < 0) return null;
       c = (char) i;
       switch (c) {
@@ -277,20 +374,20 @@ public class Tokenizer {
       case ' ': case '\t': case '\r': case '\n': break;
       // <comment> -> ; <all subsequent characters up to a line ending>
       case ';':
-        i = read(); if (i < 0) return new Token(Token.Type.COMMENT, start, 1);
+        i = read(); if (i < 0) return new Token(Token.Type.COMMENT, start, 1, line, column);
         c = (char) i;
         while (c != '\r' && c != '\n') {
-          i = read(); if (i < 0) return new Token(Token.Type.COMMENT, start, offset - start);
+          i = read(); if (i < 0) return new Token(Token.Type.COMMENT, start, offset - start, line, column);
           c = (char) i;
         }
         if (c == '\r') {
-          i = read(); if (i < 0) return new Token(Token.Type.COMMENT, start, offset - start);
+          i = read(); if (i < 0) return new Token(Token.Type.COMMENT, start, offset - start, line, column);
           c = (char) i;
           if (c != '\n') {
             unread(i);
           }
         }
-        if (commentsReturned)  return new Token(Token.Type.COMMENT, start, offset - start);
+        if (eclipseMode)  return new Token(Token.Type.COMMENT, start, offset - start, line, column);
         break;
       case '#':
         i = read(); if (i < 0) return null;
@@ -303,10 +400,10 @@ public class Tokenizer {
         case '|':
           int commentLevel = 1;
           while (commentLevel > 0) {
-            i = read(); if (i < 0)  return new Token(Token.Type.COMMENT, start, offset - start);
+            i = read(); if (i < 0)  return new Token(Token.Type.COMMENT, start, offset - start, line, column);
             c = (char) i;
             if (c == '#') {
-              int i2 = read(); if (i2 < 0) return new Token(Token.Type.COMMENT, start, offset - start);
+              int i2 = read(); if (i2 < 0) return new Token(Token.Type.COMMENT, start, offset - start, line, column);
               char c2 = (char) i2;
               if (c2 == '|') {
                 commentLevel++;
@@ -314,7 +411,7 @@ public class Tokenizer {
                 unread(i2);
               }
             } else if (c == '|') {
-              int i2 = read(); if (i2 < 0) return new Token(Token.Type.COMMENT, start, offset - start);
+              int i2 = read(); if (i2 < 0) return new Token(Token.Type.COMMENT, start, offset - start, line, column);
               char c2 = (char) i2;
               if (c2 == '#') {
                 commentLevel--;
@@ -323,12 +420,16 @@ public class Tokenizer {
               }
             }
           }
-          if (commentsReturned)  return new Token(Token.Type.COMMENT, start, offset - start);
+          if (eclipseMode) return new Token(Token.Type.COMMENT, start, offset - start, line, column);
           break;
         case ';':
           // <comment> -> #; <intertoken space> <datum>
-          parser.read();
-          if (commentsReturned)  return new Token(Token.Type.COMMENT, start, offset - start);
+          try {
+            parser.read();
+          } catch (SchemeException x) {
+            rethrow(x);
+          }
+          if (eclipseMode) return new Token(Token.Type.COMMENT, start, offset - start, line, column);
           break;
         case '!':
           java.lang.String directive = readUntilDelimiter();
@@ -337,9 +438,9 @@ public class Tokenizer {
           } else if (directive.equals("no-fold-case")) {
             foldCase = false;
           } else {
-            throw new SchemeException(new ReadError(new IllegalArgumentException("Unknown directive #! " +directive)));
+            throw new SyntaxErrorException("Unknown directive #! " + directive, new Token(Token.Type.DIRECTIVE, start, offset-start, line, column));
           }
-          if (commentsReturned) return new Token(Token.Type.DIRECTIVE, start, offset - start);
+          if (eclipseMode) return new Token(Token.Type.DIRECTIVE, start, offset - start, line, column);
           break;
         default:
           unread(i);
@@ -353,9 +454,21 @@ public class Tokenizer {
       }
     }
   }
+  protected void rethrow(SchemeException x) throws SyntaxErrorException {
+    if (!eclipseMode) throw x;
+    Value v = x.getError();
+    if (v != null && v.isError()) {
+      se.pp.forsberg.scheme.values.errors.Error e = (se.pp.forsberg.scheme.values.errors.Error) v;
+      Throwable t = e.getThrowable();
+      if (t != null && t instanceof SyntaxErrorException) {
+        throw (SyntaxErrorException) t;
+      }
+    }
+    throw x;
+  }
 
-  public void setCommentsReturned(boolean b) {
-    commentsReturned = b;
+  public void setEclipseMode(boolean b) {
+    eclipseMode = b;
   }
   
 }
