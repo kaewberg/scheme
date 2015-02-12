@@ -64,7 +64,7 @@ public class BasicKeywords extends Library {
           Value argvs = bindings.getValuesAsList(arg);
           Value body1v = bindings.get(body1);
           Value body2v = bindings.getValuesAsList(body2);
-          Value value = Pair.makeList(new Value[] { lambda, argvs, new Pair(body1v, body2v) });
+          Value value = new Pair(lambda, new Pair(argvs, new Pair(body1v, body2v)));
           env.define((Identifier) xv, value.eval(env));
           return Value.UNSPECIFIED;
         }
@@ -80,7 +80,7 @@ public class BasicKeywords extends Library {
           Value argvs = bindings.getValuesAsList(arg);
           Value body1v = bindings.get(body1);
           Value body2v = bindings.getValuesAsList(body2);
-          Value value = Pair.makeList(new Value[] { lambda, argvs, new Pair(body1v, body2v) });
+          Value value = new Pair(lambda, new Pair(argvs, new Pair(body1v, body2v)));
           Op result = new DefineOp(parent, (Identifier) xv);
           result = new Op.Eval(result);
           result.getEvaluator().setValue(value);
@@ -96,7 +96,7 @@ public class BasicKeywords extends Library {
           Value argv = bindings.get(arg);
           Value body1v = bindings.get(body1);
           Value body2v = bindings.getValuesAsList(body2);
-          Value value = Pair.makeList(new Value[] { lambda, argv, new Pair(body1v, body2v) } );
+          Value value = new Pair(lambda, new Pair(argv, new Pair(body1v, body2v)));
           env.define((Identifier) xv, value.eval(env));
           return Value.UNSPECIFIED;
         }
@@ -112,7 +112,7 @@ public class BasicKeywords extends Library {
           Value argv = bindings.get(arg);
           Value body1v = bindings.get(body1);
           Value body2v = bindings.getValuesAsList(body2);
-          Value value = Pair.makeList(new Value[] { lambda, argv, new Pair(body1v, body2v)} );
+          Value value = new Pair(lambda, new Pair(argv, new Pair(body1v, body2v)));
           Op result = new DefineOp(parent, (Identifier) xv);
           result = new Op.Eval(result);
           result.getEvaluator().setValue(value);
