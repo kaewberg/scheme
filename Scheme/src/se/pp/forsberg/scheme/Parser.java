@@ -173,7 +173,7 @@ public class Parser {
     }
     throw new SchemeException(new ReadError(new SyntaxErrorException("Cannot happen", null)));
   }
-  Value readList(Label labelThis, Environment labels) throws IOException, SyntaxErrorException {
+  Value readList(Label labelThis, Environment labels) throws SchemeException, IOException, SyntaxErrorException {
     Value car = read(null, labels);
     if (car == null) {
       Token token = readToken();
@@ -181,15 +181,15 @@ public class Parser {
       case RIGHT_PAREN: return NIL;
       case DOT:
         Value cdr = read(null, labels);
-        if (cdr == null)  throw new SchemeException(new ReadError(new SyntaxErrorException("Expected value after .", null)));
+        if (cdr == null)  throw new SchemeException("Expected value after .");
         token = readToken();
-        if (token.getType() != Type.RIGHT_PAREN) throw new SchemeException(new ReadError(new SyntaxErrorException("Expected ) after . value got " + token, token)));
+        if (token.getType() != Type.RIGHT_PAREN) throw new SchemeException("Expected ) after . value" , new se.pp.forsberg.scheme.values.String(token.getType().toString()));
         return cdr;
-      default: throw new SchemeException(new ReadError(new SyntaxErrorException("Unexpected " + token, token)));
+      default: throw new SchemeException("Unexpected " + token);
       }
     }
     if (car.isEof()) {
-      throw new SchemeException(new ReadError(new SyntaxErrorException("Unexpected EOF", null)));
+      throw new SchemeException("Unexpected EOF");
     }
      
     if (labelThis != null) {

@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.Reader;
+import java.rmi.activation.ActivationGroupDesc.CommandEnvironment;
 
 import se.pp.forsberg.scheme.values.Environment;
 import se.pp.forsberg.scheme.values.Port;
@@ -14,10 +15,10 @@ import se.pp.forsberg.scheme.values.errors.Error;
 
 public class Scheme {
   
-  private void repl() throws InstantiationException, IllegalAccessException  {
+  private void repl() throws InstantiationException, IllegalAccessException, SchemeException  {
     repl(new BufferedReader(new InputStreamReader(System.in)), System.out);
   }
-  private void repl(Reader in, PrintStream out) throws InstantiationException, IllegalAccessException {
+  private void repl(Reader in, PrintStream out) throws InstantiationException, IllegalAccessException, SchemeException {
    // Parser parser = new Parser(in);
     Port port = Port.STDIO;
     
@@ -46,7 +47,7 @@ public class Scheme {
     }
   }
   
-  private void runProgram(String filename) throws FileNotFoundException {
+  private void runProgram(String filename) throws FileNotFoundException, SchemeException {
     Parser parser = new Parser(new FileReader(filename));
     Environment env = Environment.schemeReportEnvironment(7);
     
@@ -98,8 +99,10 @@ public class Scheme {
 //  }
   
 
+  public static String[] commandLine;
   public static void main(String[] arguments) {
     try {
+      commandLine = arguments;
       Scheme scheme = new Scheme();
       if (arguments.length > 0) {
         scheme.runProgram(arguments[0]);
@@ -111,7 +114,7 @@ public class Scheme {
     }
   }
   private static Evaluator evaluator = new Evaluator();
-  public static Value eval(Value expression, Environment env) {
+  public static Value eval(Value expression, Environment env) throws SchemeException {
     return evaluator.eval(expression, env);
     // return expression.eval(env);
   }

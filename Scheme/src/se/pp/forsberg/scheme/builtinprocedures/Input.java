@@ -16,11 +16,17 @@ import se.pp.forsberg.scheme.values.Port;
 import se.pp.forsberg.scheme.values.String;
 import se.pp.forsberg.scheme.values.Undentifier;
 import se.pp.forsberg.scheme.values.Value;
+import se.pp.forsberg.scheme.values.errors.Error;
 import se.pp.forsberg.scheme.values.errors.RuntimeError;
 import se.pp.forsberg.scheme.values.numbers.Integer;
 import se.pp.forsberg.scheme.values.numbers.LongInteger;
 
 public class Input extends Library {
+  public Input() throws SchemeException {
+    super();
+    // TODO Auto-generated constructor stub
+  }
+
   public static Value getName() {
     return makeName("scheme-impl", "input");
   }
@@ -31,7 +37,7 @@ public class Input extends Library {
     }
 
     @Override
-    public Value apply(Value arguments) {
+    public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 0, 1, Port.class);
       Port port = null;
       if (!arguments.isNull()) {
@@ -45,13 +51,21 @@ public class Input extends Library {
 
     @Override
     public Op apply(Op op, Environment env, Value arguments) {
-      checkArguments(this, arguments, 0, 1, Port.class);
+      try {
+        checkArguments(this, arguments, 0, 1, Port.class);
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       Port port = (Port) env.lookup(Undentifier.INPUT_PORT);
       if (!arguments.isNull()) {
         port = (Port) ((Pair) arguments).getCar();
       }
       Op result = op;
-      result.setValue(port.read());
+      try {
+        result.setValue(port.read());
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       return result;
     }
   }
@@ -62,27 +76,34 @@ public class Input extends Library {
     }
 
     @Override
-    public Value apply(Value arguments) {
+    public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 0, 1, Port.class);
       Port port = null;
       if (!arguments.isNull()) {
         port = (Port) ((Pair) arguments).getCar();
       } else {
-        throw new SchemeException(new RuntimeError(new IllegalArgumentException(
-            "current-input-port needs op-based eval")));
+        throw new SchemeException("current-input-port needs op-based eval");
       }
       return port.readChar();
     }
 
     @Override
     public Op apply(Op op, Environment env, Value arguments) {
-      checkArguments(this, arguments, 0, 1, Port.class);
+      try {
+        checkArguments(this, arguments, 0, 1, Port.class);
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       Port port = (Port) env.lookup(Undentifier.INPUT_PORT);
       if (!arguments.isNull()) {
         port = (Port) ((Pair) arguments).getCar();
       }
       Op result = op;
-      result.setValue(port.readChar());
+      try {
+        result.setValue(port.readChar());
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       return result;
     }
   }
@@ -93,27 +114,34 @@ public class Input extends Library {
     }
 
     @Override
-    public Value apply(Value arguments) {
+    public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 0, 1, Port.class);
       Port port = null;
       if (!arguments.isNull()) {
         port = (Port) ((Pair) arguments).getCar();
       } else {
-        throw new SchemeException(new RuntimeError(new IllegalArgumentException(
-            "current-input-port needs op-based eval")));
+        throw new SchemeException("current-input-port needs op-based eval");
       }
       return port.peekChar();
     }
 
     @Override
     public Op apply(Op op, Environment env, Value arguments) {
-      checkArguments(this, arguments, 0, 1, Port.class);
+      try {
+        checkArguments(this, arguments, 0, 1, Port.class);
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       Port port = (Port) env.lookup(Undentifier.INPUT_PORT);
       if (!arguments.isNull()) {
         port = (Port) ((Pair) arguments).getCar();
       }
       Op result = op;
-      result.setValue(port.peekChar());
+      try {
+        result.setValue(port.peekChar());
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       return result;
     }
   }
@@ -124,27 +152,34 @@ public class Input extends Library {
     }
 
     @Override
-    public Value apply(Value arguments) {
+    public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 0, 1, Port.class);
       Port port = null;
       if (!arguments.isNull()) {
         port = (Port) ((Pair) arguments).getCar();
       } else {
-        throw new SchemeException(new RuntimeError(new IllegalArgumentException(
-            "current-input-port needs op-based eval")));
+        throw new SchemeException("current-input-port needs op-based eval");
       }
       return port.readLine();
     }
 
     @Override
     public Op apply(Op op, Environment env, Value arguments) {
-      checkArguments(this, arguments, 0, 1, Port.class);
+      try {
+        checkArguments(this, arguments, 0, 1, Port.class);
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       Port port = (Port) env.lookup(Undentifier.INPUT_PORT);
       if (!arguments.isNull()) {
         port = (Port) ((Pair) arguments).getCar();
       }
       Op result = op;
-      result.setValue(port.readLine());
+      try {
+        result.setValue(port.readLine());
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       return result;
     }
   }
@@ -155,7 +190,7 @@ public class Input extends Library {
     }
 
     @Override
-    public Value apply(Value arguments) {
+    public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1);
       Value v = ((Pair) arguments).getCar();
       return v.isEof() ? Boolean.TRUE : Boolean.FALSE;
@@ -168,7 +203,7 @@ public class Input extends Library {
     }
 
     @Override
-    public Value apply(Value arguments) {
+    public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 0);
       return Eof.EOF;
     }
@@ -180,27 +215,34 @@ public class Input extends Library {
     }
 
     @Override
-    public Value apply(Value arguments) {
+    public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 0, 1, Port.class);
       Port port = null;
       if (!arguments.isNull()) {
         port = (Port) ((Pair) arguments).getCar();
       } else {
-        throw new SchemeException(new RuntimeError(new IllegalArgumentException(
-            "current-input-port needs op-based eval")));
+        throw new SchemeException("current-input-port needs op-based eval");
       }
       return port.isCharReady();
     }
 
     @Override
     public Op apply(Op op, Environment env, Value arguments) {
-      checkArguments(this, arguments, 0, 1, Port.class);
+      try {
+        checkArguments(this, arguments, 0, 1, Port.class);
+      } catch (SchemeException e) {
+         op.getEvaluator().error(e.getError());
+      }
       Port port = (Port) env.lookup(Undentifier.INPUT_PORT);
       if (!arguments.isNull()) {
         port = (Port) ((Pair) arguments).getCar();
       }
       Op result = op;
-      result.setValue(port.isCharReady());
+      try {
+        result.setValue(port.isCharReady());
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       return result;
     }
   }
@@ -211,7 +253,7 @@ public class Input extends Library {
     }
 
     @Override
-    public Value apply(Value arguments) {
+    public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, 2, Integer.class, Port.class);
       Integer k = (Integer) ((Pair) arguments).getCar();
       Port port = null;
@@ -219,8 +261,7 @@ public class Input extends Library {
       if (!arguments.isNull()) {
         port = (Port) ((Pair) arguments).getCar();
       } else {
-        throw new SchemeException(new RuntimeError(new IllegalArgumentException(
-            "current-input-port needs op-based eval")));
+        throw new SchemeException("current-input-port needs op-based eval");
       }
       StringBuilder result = new StringBuilder();
       Value c = port.readChar();
@@ -238,7 +279,11 @@ public class Input extends Library {
 
     @Override
     public Op apply(Op op, Environment env, Value arguments) {
-      checkArguments(this, arguments, 1, 2, Integer.class, Port.class);
+      try {
+        checkArguments(this, arguments, 1, 2, Integer.class, Port.class);
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       Integer k = (Integer) ((Pair) arguments).getCar();
       Port port = (Port) env.lookup(Undentifier.INPUT_PORT);
       arguments = ((Pair) arguments).getCdr();
@@ -246,7 +291,12 @@ public class Input extends Library {
         port = (Port) ((Pair) arguments).getCar();
       }
       StringBuilder s = new StringBuilder();
-      Value c = port.readChar();
+      Value c;
+      try {
+        c = port.readChar();
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       Op result = op;
       if (c.isEof()) {
         result.setValue(Eof.EOF);
@@ -256,7 +306,11 @@ public class Input extends Library {
         if (c.isEof())
           break;
         s.append(((Character) c).getCharacter());
-        c = port.readChar();
+        try {
+          c = port.readChar();
+        } catch (SchemeException e) {
+          return op.getEvaluator().error(e.getError());
+        }
         k = k.minus(LongInteger.ONE);
       }
       result.setValue(new String(s));
@@ -270,27 +324,34 @@ public class Input extends Library {
     }
 
     @Override
-    public Value apply(Value arguments) {
+    public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 0, 1, Port.class);
       Port port = null;
       if (!arguments.isNull()) {
         port = (Port) ((Pair) arguments).getCar();
       } else {
-        throw new SchemeException(new RuntimeError(new IllegalArgumentException(
-            "current-input-port needs op-based eval")));
+        throw new SchemeException("current-input-port needs op-based eval");
       }
       return port.readByte();
     }
 
     @Override
     public Op apply(Op op, Environment env, Value arguments) {
-      checkArguments(this, arguments, 0, 1, Port.class);
+      try {
+        checkArguments(this, arguments, 0, 1, Port.class);
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       Port port = (Port) env.lookup(Undentifier.INPUT_PORT);
       if (!arguments.isNull()) {
         port = (Port) ((Pair) arguments).getCar();
       }
       Op result = op;
-      result.setValue(port.readByte());
+      try {
+        result.setValue(port.readByte());
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       return result;
     }
   }
@@ -301,27 +362,34 @@ public class Input extends Library {
     }
 
     @Override
-    public Value apply(Value arguments) {
+    public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 0, 1, Port.class);
       Port port = null;
       if (!arguments.isNull()) {
         port = (Port) ((Pair) arguments).getCar();
       } else {
-        throw new SchemeException(new RuntimeError(new IllegalArgumentException(
-            "current-input-port needs op-based eval")));
+        throw new SchemeException("current-input-port needs op-based eval");
       }
       return port.peekByte();
     }
 
     @Override
     public Op apply(Op op, Environment env, Value arguments) {
-      checkArguments(this, arguments, 0, 1, Port.class);
+      try {
+        checkArguments(this, arguments, 0, 1, Port.class);
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       Port port = (Port) env.lookup(Undentifier.INPUT_PORT);
       if (!arguments.isNull()) {
         port = (Port) ((Pair) arguments).getCar();
       }
       Op result = op;
-      result.setValue(port.peekByte());
+      try {
+        result.setValue(port.peekByte());
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       return result;
     }
   }
@@ -332,27 +400,34 @@ public class Input extends Library {
     }
 
     @Override
-    public Value apply(Value arguments) {
+    public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 0, 1, Port.class);
       Port port = null;
       if (!arguments.isNull()) {
         port = (Port) ((Pair) arguments).getCar();
       } else {
-        throw new SchemeException(new RuntimeError(new IllegalArgumentException(
-            "current-input-port needs op-based eval")));
+        throw new SchemeException("current-input-port needs op-based eval");
       }
       return port.isByteReady();
     }
 
     @Override
     public Op apply(Op op, Environment env, Value arguments) {
-      checkArguments(this, arguments, 0, 1, Port.class);
+      try {
+        checkArguments(this, arguments, 0, 1, Port.class);
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       Port port = (Port) env.lookup(Undentifier.INPUT_PORT);
       if (!arguments.isNull()) {
         port = (Port) ((Pair) arguments).getCar();
       }
       Op result = op;
-      result.setValue(port.isByteReady());
+      try {
+        result.setValue(port.isByteReady());
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       return result;
     }
   }
@@ -363,7 +438,7 @@ public class Input extends Library {
     }
 
     @Override
-    public Value apply(Value arguments) {
+    public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, 2, Integer.class, Port.class);
       Integer k = (Integer) ((Pair) arguments).getCar();
       Port port = null;
@@ -371,8 +446,7 @@ public class Input extends Library {
       if (!arguments.isNull()) {
         port = (Port) ((Pair) arguments).getCar();
       } else {
-        throw new SchemeException(new RuntimeError(new IllegalArgumentException(
-            "current-input-port needs op-based eval")));
+        throw new SchemeException("current-input-port needs op-based eval");
       }
       List<Byte> result = new ArrayList<Byte>();
       Value b = port.readByte();
@@ -390,18 +464,26 @@ public class Input extends Library {
 
     @Override
     public Op apply(Op op, Environment env, Value arguments) {
-      checkArguments(this, arguments, 1, 2, Integer.class, Port.class);
+      try {
+        checkArguments(this, arguments, 1, 2, Integer.class, Port.class);
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       Integer k = (Integer) ((Pair) arguments).getCar();
       Port port = null;
       arguments = ((Pair) arguments).getCdr();
       if (!arguments.isNull()) {
         port = (Port) ((Pair) arguments).getCar();
       } else {
-        throw new SchemeException(new RuntimeError(new IllegalArgumentException(
-            "current-input-port needs op-based eval")));
+        op.getEvaluator().error(new Error("current-input-port needs op-based eval"));
       }
       List<Byte> v = new ArrayList<Byte>();
-      Value b = port.readByte();
+      Value b;
+      try {
+        b = port.readByte();
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       Op result = op;
       if (b.isEof()) {
         result.setValue(Eof.EOF);
@@ -411,7 +493,11 @@ public class Input extends Library {
         if (b.isEof())
           break;
         v.add(((LongInteger) b).asByte());
-        b = port.readByte();
+        try {
+          b = port.readByte();
+        } catch (SchemeException e) {
+          return op.getEvaluator().error(e.getError());
+        }
         k = k.minus(LongInteger.ONE);
       }
       result.setValue(new ByteVector(v));
@@ -425,7 +511,7 @@ public class Input extends Library {
     }
 
     @Override
-    public Value apply(Value arguments) {
+    public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, 4, ByteVector.class, Port.class, Integer.class, Integer.class);
       List<Byte> v = ((ByteVector) ((Pair) arguments).getCar()).getVector();
       Port port = null;
@@ -433,8 +519,7 @@ public class Input extends Library {
       if (!arguments.isNull()) {
         port = (Port) ((Pair) arguments).getCar();
       } else {
-        throw new SchemeException(new RuntimeError(new IllegalArgumentException(
-            "current-input-port needs op-based eval")));
+        throw new SchemeException("current-input-port needs op-based eval");
       }
       arguments = ((Pair) arguments).getCdr();
       int from = 0;
@@ -461,7 +546,11 @@ public class Input extends Library {
 
     @Override
     public Op apply(Op op, Environment env, Value arguments) {
-      checkArguments(this, arguments, 1, 4, ByteVector.class, Port.class, Integer.class, Integer.class);
+      try {
+        checkArguments(this, arguments, 1, 4, ByteVector.class, Port.class, Integer.class, Integer.class);
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       List<Byte> v = ((ByteVector) ((Pair) arguments).getCar()).getVector();
       Port port = (Port) env.lookup(Undentifier.INPUT_PORT);
       arguments = ((Pair) arguments).getCdr();
@@ -477,7 +566,12 @@ public class Input extends Library {
       if (!arguments.isNull()) {
         to = ((Integer) ((Pair) arguments).getCar()).asInt();
       }
-      Value b = port.readByte();
+      Value b;
+      try {
+        b = port.readByte();
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       Op result = op;
       if (b.isEof()) {
         result.setValue(Eof.EOF);
@@ -488,7 +582,11 @@ public class Input extends Library {
         if (b.isEof())
           break;
         v.set(i, ((LongInteger) b).asByte());
-        b = port.readByte();
+        try {
+          b = port.readByte();
+        } catch (SchemeException e) {
+          return op.getEvaluator().error(e.getError());
+        }
         i++;
       }
       result.setValue(Value.UNSPECIFIED);

@@ -122,7 +122,7 @@ public class Pair extends Value {
 //    }
 //  }
   @Override
-  public Value eval(Environment env) {
+  public Value eval(Environment env) throws SchemeException {
     if (car.isIdentifier()) {
       Identifier id = (Identifier) car;
       java.lang.String s = id.getIdentifier();
@@ -234,10 +234,10 @@ public class Pair extends Value {
 //      return new Lambda(formals, body, env);
 //    }
 //  }
-  protected Value evalQuote() {
-    if (!cdr.isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Malformed quote")));
+  protected Value evalQuote() throws SchemeException {
+    if (!cdr.isPair()) throw new SchemeException("Malformed quote", this);
     Pair pair = (Pair) cdr;
-    if (!pair.cdr.isNull()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Malformed quote")));
+    if (!pair.cdr.isNull()) throw new SchemeException("Malformed quote", this);
     return pair.car;
   }
 //  protected Value evalLet(Environment env) {
@@ -560,13 +560,13 @@ public class Pair extends Value {
 //    // TODO Auto-generated method stub
 //    return null;
 //  }
-  protected Value evalQuasiQuote(Environment env, int level) {
-    if (!cdr.isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Malformed quasi-quote")));
+  protected Value evalQuasiQuote(Environment env, int level) throws SchemeException {
+    if (!cdr.isPair()) throw new SchemeException("Malformed quasi-quote", this);
     Pair pair = (Pair) cdr;
-    if (!pair.cdr.isNull()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Malformed quasi-quote")));
+    if (!pair.cdr.isNull()) throw new SchemeException("Malformed quasi-quote", this);
     return evalQuasiQuote(env, pair.car, level);
   }
-  protected Value evalQuasiQuote(Environment env, Value value, int level) {
+  protected Value evalQuasiQuote(Environment env, Value value, int level) throws SchemeException {
     // TODO record
     if (level == 0) return value.eval(env);
     if (!value.isPair()) return value;
@@ -582,9 +582,9 @@ public class Pair extends Value {
     if (pair.car.isIdentifier()) {
       Identifier id = (Identifier) pair.car;
       if (id.getIdentifier().equals("unquote") || id.getIdentifier().equals("unquote-splicing")) {
-        if (!pair.cdr.isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Malformed quasi-quote")));
+        if (!pair.cdr.isPair()) throw new SchemeException("Malformed quasi-quote", this);
         pair = (Pair) pair.cdr;
-        if (!pair.cdr.isNull()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Malformed quasi-quote")));
+        if (!pair.cdr.isNull()) throw new SchemeException("Malformed quasi-quote", this);
         // TODO record
         if (level == 1) return pair.car.eval(env);
         return new Pair(id, new Pair(evalQuasiQuote(env, pair.car, level-1), Nil.NIL));
@@ -594,20 +594,20 @@ public class Pair extends Value {
     if (pair.car.isPair()) {
       Pair unquote = (Pair) pair.car;
       if (unquote.car.isIdentifier() && ((Identifier) unquote.car).getIdentifier().equals("unquote-splicing")) {
-        if (!unquote.cdr.isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Malformed quasi-quote")));
+        if (!unquote.cdr.isPair()) throw new SchemeException("Malformed quasi-quote", this);
         unquote = (Pair) unquote.cdr;
-        if (!unquote.cdr.isNull()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Malformed quasi-quote")));
+        if (!unquote.cdr.isNull()) throw new SchemeException("Malformed quasi-quote", this);
         return concat(evalQuasiQuote(env, unquote.car, level-1), evalQuasiQuote(env, pair.cdr, level));
       }
     }
     return new Pair(evalQuasiQuote(env, pair.car, level), evalQuasiQuote(env, pair.cdr, level));
   }
-  protected Value concat(Value list, Value rest) {
+  protected Value concat(Value list, Value rest) throws SchemeException {
     if (list.isNull()) return rest;
-    if (!list.isPair())  throw new SchemeException(new RuntimeError(new IllegalArgumentException("Malformed quasi-quote")));
+    if (!list.isPair())  throw new SchemeException("Malformed quasi-quote", list);
     Pair pair = (Pair) list;
     while (!pair.cdr.isNull()) {
-      if (!pair.cdr.isPair())  throw new SchemeException(new RuntimeError(new IllegalArgumentException("Malformed quasi-quote")));
+      if (!pair.cdr.isPair())  throw new SchemeException("Malformed quasi-quote", list);
       pair = (Pair) pair.cdr;
     }
     pair.cdr = rest;
@@ -644,9 +644,9 @@ public class Pair extends Value {
 //      throw new IllegalArgumentException("Continuation implementaion problem: Expected car or cdr, got " + d);
 //    }
 //  }
-  protected Value evalList(Value list, Environment env) {
+  protected Value evalList(Value list, Environment env) throws SchemeException {
    if (list.isNull()) return Nil.NIL;
-   if (!list.isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Illegal function call, expected argument list")));
+   if (!list.isPair()) throw new SchemeException("Illegal function call, expected argument list", list);
 //   continuation.recordCar();
    Value car;
 //   try {

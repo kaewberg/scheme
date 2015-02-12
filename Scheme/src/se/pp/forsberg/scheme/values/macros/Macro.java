@@ -11,15 +11,14 @@ import se.pp.forsberg.scheme.values.Nil;
 import se.pp.forsberg.scheme.values.Pair;
 import se.pp.forsberg.scheme.values.Value;
 import se.pp.forsberg.scheme.values.Vector;
-import se.pp.forsberg.scheme.values.errors.RuntimeError;
 
 public class Macro extends PatternKeyword {
 
-  public Macro(java.lang.String keyword, List<Value> literals, List<Value> rules) {
+  public Macro(java.lang.String keyword, List<Value> literals, List<Value> rules) throws SchemeException {
     this(keyword, null, literals, rules);
   }
 
-  public Macro(java.lang.String keyword, Identifier ellipsis, List<Value> literals, List<Value> rules) {
+  public Macro(java.lang.String keyword, Identifier ellipsis, List<Value> literals, List<Value> rules) throws SchemeException {
     super(keyword);
     if (ellipsis != null)
       setEllipsis(ellipsis);
@@ -27,34 +26,30 @@ public class Macro extends PatternKeyword {
     addRules(rules);
   }
 
-  protected void addLiterals(List<Value> literals) {
+  protected void addLiterals(List<Value> literals) throws SchemeException {
     for (Value value : literals) {
       if (!value.isIdentifier())
-        throw new SchemeException(new RuntimeError(new IllegalArgumentException(
-            "Invalid syntax rule, expected literals " + literals)));
+        throw new SchemeException("Invalid syntax rule, expected literals", value);
       addLiteral((Identifier) value);
     }
   }
 
-  private void addRules(List<Value> rules) {
+  private void addRules(List<Value> rules) throws SchemeException {
     for (Value value : rules) {
       addRule(value);
     }
   }
 
-  private void addRule(Value rule) {
+  private void addRule(Value rule) throws SchemeException {
     if (!rule.isPair())
-      throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid syntax rule, expected rule not "
-          + rule)));
+      throw new SchemeException("Invalid syntax rule, expected rule", rule);
     Pair pair = (Pair) rule;
     Value pattern = pair.getCar();
     if (!pair.getCdr().isPair())
-      throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid syntax rule, expected rule not "
-          + rule)));
+      throw new SchemeException("Invalid syntax rule, expected rule", rule);
     pair = (Pair) pair.getCdr();
     if (!pair.getCdr().isNull())
-      throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid syntax rule, expected rule not "
-          + rule)));
+      throw new SchemeException("Invalid syntax rule, expected rule", rule);
     final Value template = pair.getCar();
 
     super.addRule(new Rule(pattern, new MacroAction(template)));

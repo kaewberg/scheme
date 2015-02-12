@@ -455,7 +455,7 @@ public class Tokenizer {
     }
   }
   protected void rethrow(SchemeException x) throws SyntaxErrorException {
-    if (!eclipseMode) throw x;
+    //if (!eclipseMode) throw x;
     Value v = x.getError();
     if (v != null && v.isError()) {
       se.pp.forsberg.scheme.values.errors.Error e = (se.pp.forsberg.scheme.values.errors.Error) v;
@@ -464,7 +464,7 @@ public class Tokenizer {
         throw (SyntaxErrorException) t;
       }
     }
-    throw x;
+    throw new SyntaxErrorException("Unplaceable SchemeExecption " + x.getMessage(), new Token(Token.Type.EOF, 0, 0, 0, 0));
   }
 
   public void setEclipseMode(boolean b) {

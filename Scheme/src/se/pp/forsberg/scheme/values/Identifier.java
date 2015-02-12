@@ -3,7 +3,6 @@ package se.pp.forsberg.scheme.values;
 import java.util.Locale;
 
 import se.pp.forsberg.scheme.SchemeException;
-import se.pp.forsberg.scheme.values.errors.RuntimeError;
 import se.pp.forsberg.scheme.values.numbers.Complex;
 import se.pp.forsberg.scheme.values.numbers.LongInteger;
 import se.pp.forsberg.scheme.values.numbers.Number;
@@ -23,11 +22,11 @@ public class Identifier extends Value {
   }
   public java.lang.String getIdentifier() { return value; }
   @Override
-  public Value eval(Environment env) {
-    if (getIdentifier().equals("<undefined>")) return null;
+  public Value eval(Environment env) throws SchemeException {
+    //if (getIdentifier().equals("<undefined>")) return null;
     Value value = env.lookup(this);
     if (value == null) {
-      throw new SchemeException(new RuntimeError(new IllegalArgumentException("Undefined identifier " + this)));
+      throw new SchemeException("Undefined identifier", this);
     }
     return value;
   }

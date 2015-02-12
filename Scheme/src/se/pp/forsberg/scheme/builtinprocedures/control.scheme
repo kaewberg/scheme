@@ -1,9 +1,10 @@
 (define-library (scheme-impl control)
   (import (scheme-impl base))
 
-  (export values map string-map vector-map)
+  (export values map string-map vector-map for-each string-for-each vector-for-each)
+  (export values call-with-values)
   
-  (begin)
+  (begin
       
     (define (generic-map proc null carp cdrp consp args)
       (let ((multi-car (lambda (x)
@@ -33,13 +34,14 @@
                    (lambda (s) (vector-copy s 1))
                    (lambda (c s) (vector-append (string c) s))
                    args))
-    (define (for-each proc . args) (map proc . args) #f)
-    (define (string-for-each proc . args) (string-map proc . args) #f)
-    (define (vector-for-each proc . args) (vector-map proc . args) #f)
+
+    (define (for-each x) (map (car x) (cdr x)) #f)
+    (define (string-for-each x) (string-map (car x) (cdr x)) #f)
+    (define (vector-for-each x) (vector-map (car x) (cdr x)) #f)
     
     (define (values . things)
       (call-with-current-continuation
-      (lambda (cont) (apply cont things)))
+        (lambda (cont) (apply cont things))))
     (define (call-with-values producer consumer)
       (apply consumer (producer))) 
   )  

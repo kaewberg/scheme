@@ -359,7 +359,7 @@ public abstract class Op {
   public static class ErrorOp extends Op {
     private Value error;
     private boolean continuable;
-    public ErrorOp(Evaluator evaluator, String message, Value irritants) {
+    public ErrorOp(Evaluator evaluator, java.lang.String message, Value irritants) {
       super(evaluator, new Op.Done(evaluator));
       this.error = new Error(message, irritants);
     }

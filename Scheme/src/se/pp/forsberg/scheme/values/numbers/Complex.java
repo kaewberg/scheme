@@ -1,8 +1,6 @@
 package se.pp.forsberg.scheme.values.numbers;
 
-import se.pp.forsberg.scheme.SchemeException;
 import se.pp.forsberg.scheme.values.Value;
-import se.pp.forsberg.scheme.values.errors.RuntimeError;
 
 public class Complex extends Number {
   private final Real r, i;
@@ -89,35 +87,35 @@ public class Complex extends Number {
   }
   @Override
   public Number log() {
-    throw new SchemeException(new RuntimeError(new IllegalArgumentException("TODO complex logarithm")));
+    throw new IllegalArgumentException("TODO complex logarithm");
   }
   @Override
   public Number log(Number base) {
-    throw new SchemeException(new RuntimeError(new IllegalArgumentException("TODO complex logarithm")));
+    throw new IllegalArgumentException("TODO complex logarithm");
   }
   @Override
   public Number cos() {
-    throw new SchemeException(new RuntimeError(new IllegalArgumentException("TODO complex trig functions")));
+    throw new IllegalArgumentException("TODO complex trig functions");
   }
   @Override
   public Number sin() {
-    throw new SchemeException(new RuntimeError(new IllegalArgumentException("TODO complex trig functions")));
+    throw new IllegalArgumentException("TODO complex trig functions");
   }
   @Override
   public Number tan() {
-    throw new SchemeException(new RuntimeError(new IllegalArgumentException("TODO complex trig functions")));
+    throw new IllegalArgumentException("TODO complex trig functions");
   }
   @Override
   public Number acos() {
-    throw new SchemeException(new RuntimeError(new IllegalArgumentException("TODO complex trig functions")));
+    throw new IllegalArgumentException("TODO complex trig functions");
   }
   @Override
   public Number asin() {
-    throw new SchemeException(new RuntimeError(new IllegalArgumentException("TODO complex trig functions")));
+    throw new IllegalArgumentException("TODO complex trig functions");
   }
   @Override
   public Number atan() {
-    throw new SchemeException(new RuntimeError(new IllegalArgumentException("TODO complex trig functions")));
+    throw new IllegalArgumentException("TODO complex trig functions");
   }
   @Override
   public Number toExact() {

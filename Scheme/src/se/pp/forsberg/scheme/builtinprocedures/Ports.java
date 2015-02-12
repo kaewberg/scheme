@@ -21,7 +21,7 @@ import se.pp.forsberg.scheme.values.errors.RuntimeError;
 
 public class Ports extends Library {
   
-  public Ports() {
+  public Ports() throws SchemeException {
     getEnvironment().define(Undentifier.INPUT_PORT, Port.STDIO);
     getEnvironment().define(Undentifier.OUTPUT_PORT, Port.STDIO);
     getEnvironment().define(Undentifier.ERROR_PORT, Port.STDERR);
@@ -33,7 +33,7 @@ public class Ports extends Library {
 
 //  public class CallWithPort extends BuiltInProcedure {
 //    public CallWithPort(Environment env) { super("call-with-port", env); }
-//    @Override public Value apply(Value arguments) {
+//    @Override public Value apply(Value arguments) throws SchemeException {
 //      checkArguments(this, arguments, Port.class, Procedure.class);
 //      Port port = (Port) ((Pair)arguments).getCar();
 //      Procedure proc = (Procedure) ((Pair) ((Pair)arguments).getCdr()).getCar();
@@ -46,7 +46,7 @@ public class Ports extends Library {
 //  }
 //  public class CallWithInputFile extends BuiltInProcedure {
 //    public CallWithInputFile(Environment env) { super("call-with-input-file", env); }
-//    @Override public Value apply(Value arguments) {
+//    @Override public Value apply(Value arguments) throws SchemeException {
 //      checkArguments(this, arguments, String.class, Procedure.class);
 //      String file = (String) ((Pair)arguments).getCar();
 //      Procedure proc = (Procedure) ((Pair) ((Pair)arguments).getCdr()).getCar();
@@ -63,7 +63,7 @@ public class Ports extends Library {
 //  }
 //  public class CallWithOutputFile extends BuiltInProcedure {
 //    public CallWithOutputFile(Environment env) { super("call-with-output-file", env); }
-//    @Override public Value apply(Value arguments) {
+//    @Override public Value apply(Value arguments) throws SchemeException {
 //      checkArguments(this, arguments, String.class, Procedure.class);
 //      String file = (String) ((Pair)arguments).getCar();
 //      Procedure proc = (Procedure) ((Pair) ((Pair)arguments).getCdr()).getCar();
@@ -80,7 +80,7 @@ public class Ports extends Library {
 //  }
   public class IsInputPort extends BuiltInProcedure {
     public IsInputPort(Environment env) { super("input-port?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, Value.class);
       Value value = ((Pair)arguments).getCar();
       if (!value.isPort()) return Boolean.FALSE;
@@ -90,7 +90,7 @@ public class Ports extends Library {
   }
   public class IsOutputPort extends BuiltInProcedure {
     public IsOutputPort(Environment env) { super("output-port?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, Value.class);
       Value value = ((Pair)arguments).getCar();
       if (!value.isPort()) return Boolean.FALSE;
@@ -100,15 +100,31 @@ public class Ports extends Library {
   }
   public class IsPort extends BuiltInProcedure {
     public IsPort(Environment env) { super("port?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, Value.class);
       Value value = ((Pair)arguments).getCar();
       return value.isPort()? Boolean.TRUE : Boolean.FALSE;
     }
   }
+  public class IsInputPortOpen extends BuiltInProcedure {
+    public IsInputPortOpen(Environment env) { super("input-port-open?", env); }
+    @Override public Value apply(Value arguments) throws SchemeException {
+      checkArguments(this, arguments, 1, Port.class);
+      Port port = (Port) ((Pair)arguments).getCar();
+      return port.isInputPortOpen()? Boolean.TRUE : Boolean.FALSE;
+    }
+  }
+  public class IsOutputPortOpen extends BuiltInProcedure {
+    public IsOutputPortOpen(Environment env) { super("output-port-open?", env); }
+    @Override public Value apply(Value arguments) throws SchemeException {
+      checkArguments(this, arguments, 1, Port.class);
+      Port port = (Port) ((Pair)arguments).getCar();
+      return port.isOutputPortOpen()? Boolean.TRUE : Boolean.FALSE;
+    }
+  }
   public class CurrentInputPort extends BuiltInProcedure {
     public CurrentInputPort(Environment env) { super("current-input-port", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       throw new SchemeException(new RuntimeError(new IllegalArgumentException("Only available with op-based eval")));
     }
     @Override
@@ -119,7 +135,7 @@ public class Ports extends Library {
   }
   public class CurrentOutputPort extends BuiltInProcedure {
     public CurrentOutputPort(Environment env) { super("current-output-port", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       throw new SchemeException(new RuntimeError(new IllegalArgumentException("Only available with op-based eval")));
     }
     @Override
@@ -130,7 +146,7 @@ public class Ports extends Library {
   }
   public class CurrentErrorPort extends BuiltInProcedure {
     public CurrentErrorPort(Environment env) { super("current-error-port", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       throw new SchemeException(new RuntimeError(new IllegalArgumentException("Only available with op-based eval")));
     }
     @Override
@@ -147,13 +163,26 @@ public class Ports extends Library {
   public class WithInputFromFile extends BuiltInProcedure {
     public WithInputFromFile(Environment env) { super("with-input-from-file", env); }
     public Op apply(Op op, Environment env, Value arguments) { 
-      checkArguments(this, arguments, String.class, Procedure.class);
+      try {
+        checkArguments(this, arguments, String.class, Procedure.class);
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       String filename = (String) ((Pair)arguments).getCar();
       Procedure thunk = (Procedure) ((Pair)((Pair)arguments).getCdr()).getCar();
-      Port port = Port.openInputFile(filename);
+      Port port;
+      try {
+        port = Port.openInputFile(filename);
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       
       Environment newEnv = new Environment(env);
-      newEnv.define(Undentifier.INPUT_PORT, Port.openInputFile(filename));
+      try {
+        newEnv.define(Undentifier.INPUT_PORT, Port.openInputFile(filename));
+      } catch (SchemeException e) {
+        op.getEvaluator().error(e.getError());
+      }
       
       Op result = op;
       Op.SetValue setValue = new Op.SetValue(result, op.getEnvironment(), Value.UNSPECIFIED);
@@ -166,21 +195,34 @@ public class Ports extends Library {
       return result;
     }
     @Override
-    public Value apply(Value arguments) {
-      throw new SchemeException(new RuntimeError(new IllegalArgumentException("Only available in op-based eval")));
+    public Value apply(Value arguments) throws SchemeException {
+      throw new SchemeException("Only available in op-based eval");
     }
     
   }
   public class WithOutputToFile extends BuiltInProcedure {
     public WithOutputToFile(Environment env) { super("with-output-to-file", env); }
     public Op apply(Op op, Environment env, Value arguments) { 
-      checkArguments(this, arguments, String.class, Procedure.class);
+      try {
+        checkArguments(this, arguments, String.class, Procedure.class);
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       String filename = (String) ((Pair)arguments).getCar();
       Procedure thunk = (Procedure) ((Pair)((Pair)arguments).getCdr()).getCar();
-      Port port = Port.openOutputFile(filename);
+      Port port;
+      try {
+        port = Port.openOutputFile(filename);
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       
       Environment newEnv = new Environment(env);
-      newEnv.define(Undentifier.OUTPUT_PORT, Port.openInputFile(filename));
+      try {
+        newEnv.define(Undentifier.OUTPUT_PORT, Port.openInputFile(filename));
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       
       Op result = op;
       Op.SetValue setValue = new Op.SetValue(result, op.getEnvironment(), Value.UNSPECIFIED);
@@ -194,14 +236,14 @@ public class Ports extends Library {
       // TODO should the file be closed if you escape with a continuation?
     }
     @Override
-    public Value apply(Value arguments) {
-      throw new SchemeException(new RuntimeError(new IllegalArgumentException("Only available in op-based eval")));
+    public Value apply(Value arguments) throws SchemeException {
+      throw new SchemeException("Only available in op-based eval");
     }
     
   }
   public class OpenInputFile extends BuiltInProcedure {
     public OpenInputFile(Environment env) { super("open-input-file", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, String.class);
       String filename = (String) ((Pair)arguments).getCar();
       return Port.openInputFile(filename);
@@ -209,7 +251,7 @@ public class Ports extends Library {
   }
   public class OpenOutputFile extends BuiltInProcedure {
     public OpenOutputFile(Environment env) { super("open-output-file", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, String.class);
       String filename = (String) ((Pair)arguments).getCar();
       return Port.openOutputFile(filename);
@@ -217,7 +259,7 @@ public class Ports extends Library {
   }
   public class ClosePort extends BuiltInProcedure {
     public ClosePort(Environment env) { super("close-port", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, Port.class);
       Port port = (Port) ((Pair)arguments).getCar();
       port.close();
@@ -226,7 +268,7 @@ public class Ports extends Library {
   }
   public class CloseInputPort extends BuiltInProcedure {
     public CloseInputPort(Environment env) { super("close-input-port", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, Port.class);
       Port port = (Port) ((Pair)arguments).getCar();
       port.closeInput();
@@ -235,7 +277,7 @@ public class Ports extends Library {
   }
   public class CloseOutputPort extends BuiltInProcedure {
     public CloseOutputPort(Environment env) { super("close-output-port", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, Port.class);
       Port port = (Port) ((Pair)arguments).getCar();
       port.closeOutput();
@@ -244,7 +286,7 @@ public class Ports extends Library {
   }
   public class OpenInputString extends BuiltInProcedure {
     public OpenInputString(Environment env) { super("open-input-string", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, String.class);
       String s = (String) ((Pair)arguments).getCar();
       return new Port(new ByteArrayInputStream(s.getString().getBytes()), null);
@@ -252,14 +294,14 @@ public class Ports extends Library {
   }
   public class OpenOutputString extends BuiltInProcedure {
     public OpenOutputString(Environment env) { super("open-output-string", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 0);
       return new Port(null, new ByteArrayOutputStream());
     }
   }
   public class GetOutputString extends BuiltInProcedure {
     public GetOutputString(Environment env) { super("get-output-string", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, Port.class);
       Port port = (Port) ((Pair)arguments).getCar();
       return port.getOutputString();
@@ -267,7 +309,7 @@ public class Ports extends Library {
   }
   public class OpenInputByteVector extends BuiltInProcedure {
     public OpenInputByteVector(Environment env) { super("open-input-bytevector", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, ByteVector.class);
       ByteVector v = (ByteVector) ((Pair)arguments).getCar();
       byte array[] = new byte[v.getVector().size()];
@@ -280,14 +322,14 @@ public class Ports extends Library {
   }
   public class OpenOutputByteVector extends BuiltInProcedure {
     public OpenOutputByteVector(Environment env) { super("open-output-bytevector", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 0);
       return new Port(null, new ByteArrayOutputStream());
     }
   }
   public class GetOutputByteVector extends BuiltInProcedure {
     public GetOutputByteVector(Environment env) { super("get-output-bytevector", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, Port.class);
       Port port = (Port) ((Pair)arguments).getCar();
       return port.getOutputBytevector();

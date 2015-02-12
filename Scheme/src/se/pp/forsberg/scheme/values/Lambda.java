@@ -3,7 +3,6 @@ package se.pp.forsberg.scheme.values;
 import se.pp.forsberg.scheme.Op;
 import se.pp.forsberg.scheme.SchemeException;
 import se.pp.forsberg.scheme.values.Environment.Context;
-import se.pp.forsberg.scheme.values.errors.RuntimeError;
 
 public class Lambda extends Procedure {
   private final Value pattern;
@@ -17,7 +16,7 @@ public class Lambda extends Procedure {
     this.env = env;
   }
 
-  public Value apply(Value args) {
+  public Value apply(Value args) throws SchemeException {
     Lambda application;
     application = createApplication();
     return application.applyInternal(args);
@@ -25,7 +24,7 @@ public class Lambda extends Procedure {
   protected Lambda createApplication() {
     return new Lambda(pattern, body, new Environment(env));
   }
-  protected Value applyInternal(Value args) {
+  protected Value applyInternal(Value args) throws SchemeException {
     bind(pattern, args, env);
     Value result = null;
     Value expressions = body;
@@ -33,7 +32,7 @@ public class Lambda extends Procedure {
     boolean hasExpr = false;
     while (!expressions.isNull()) {
       if (!expressions.isPair()) {
-        throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid lambda body " + this)));
+        throw new SchemeException("Invalid lambda body", this);
       }
       Value expr = ((Pair) expressions).getCar();
       if (!isDefinition(expr)) {
@@ -45,7 +44,7 @@ public class Lambda extends Procedure {
       expressions = ((Pair) expressions).getCdr();
     }
     env.popContext();
-    if (!hasExpr) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Lambda lacks expressions " + this)));
+    if (!hasExpr) throw new SchemeException("Lambda lacks expressions", this);
     return result;
   }
   protected static boolean isDefinition(Value value) {
@@ -56,10 +55,10 @@ public class Lambda extends Procedure {
     if (id.equals("define")) return true;
     return false;
   }
-  protected static void bind(Value pattern, Value args, Environment env) {
+  protected static void bind(Value pattern, Value args, Environment env) throws SchemeException {
     if (pattern.isNull()) {
       if (!args.isNull()) {
-        throw new SchemeException(new RuntimeError(new IllegalArgumentException("Pattern mismatch")));
+        throw new SchemeException("Pattern mismatch", pattern, args);
       }
       return;
     }
@@ -69,13 +68,13 @@ public class Lambda extends Procedure {
     }
     if (pattern.isPair()) {
       if (!args.isPair()) {
-        throw new SchemeException(new RuntimeError(new IllegalArgumentException("Pattern mismatch")));
+        throw new SchemeException("Pattern mismatch", pattern, args);
       }
       bind(((Pair) pattern).getCar(), ((Pair) args).getCar(), env);
       bind(((Pair) pattern).getCdr(), ((Pair) args).getCdr(), env);
       return;
     }
-    throw new SchemeException(new RuntimeError(new IllegalArgumentException("Pattern mismatch")));
+    throw new SchemeException("Pattern mismatch", pattern, args);
   }
 
   
@@ -160,9 +159,13 @@ public class Lambda extends Procedure {
   public Op apply(Op parent, Environment env, Value args) {
     Lambda application;
     application = createApplication();
-    return application.applyInternal(parent, args);
+    try {
+      return application.applyInternal(parent, args);
+    } catch (SchemeException e) {
+      return parent.getEvaluator().error(e.getError());
+    }
   }
-  protected Op applyInternal(Op parent, Value args) {
+  protected Op applyInternal(Op parent, Value args) throws SchemeException {
     bind(pattern, args, env);
     env.pushContext(Context.START_BODY);
     parent.getEvaluator().setValue(Value.UNSPECIFIED);

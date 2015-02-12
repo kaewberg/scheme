@@ -18,14 +18,17 @@ import se.pp.forsberg.scheme.values.numbers.Integer;
 import se.pp.forsberg.scheme.values.numbers.LongInteger;
 
 public class ByteVectors extends Library {
+  public ByteVectors() throws SchemeException {
+    super();
+  }
   public static Value getName() {
     return new Pair(new Identifier("scheme-impl"), new Pair(new Identifier("byte-vectors"), Nil.NIL));
   }
   static Integer MAX = new LongInteger(255, true);
 
   public class IsByteVector extends BuiltInProcedure {
-    public IsByteVector(Environment env) { super("bytevector", env); }
-    @Override public Value apply(Value arguments) {
+    public IsByteVector(Environment env) { super("bytevector?", env); }
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, Value.class);
       Value v1 = ((Pair)arguments).getCar();
       return v1.isByteVector()? Boolean.TRUE : Boolean.FALSE;
@@ -33,13 +36,13 @@ public class ByteVectors extends Library {
   }
   public class MakeByteVector extends BuiltInProcedure {
     public MakeByteVector(Environment env) { super("make-bytevector", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, 2, Integer.class, Integer.class);
       Integer k = (Integer) ((Pair)arguments).getCar();
       byte b = 0;
       if (((Pair)arguments).getCdr().isPair()) {
         Integer i = (Integer) ((Pair)((Pair)arguments).getCdr()).getCar();
-        if (i.isNegative() || i.greaterThan(MAX)) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Byte value too large " + i)));
+        if (i.isNegative() || i.greaterThan(MAX)) throw new SchemeException("Byte value too large", i);
         b = i.asByte();
       }
       List<Byte> result = new ArrayList<Byte>(k.asInt());
@@ -51,7 +54,7 @@ public class ByteVectors extends Library {
   }
   public class _ByteVector extends BuiltInProcedure {
     public _ByteVector(Environment env) { super("bytevector", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 0, java.lang.Integer.MAX_VALUE, Integer.class, Integer.class);
       List<Byte> result = new ArrayList<Byte>();
       while (!arguments.isNull()) {
@@ -65,7 +68,7 @@ public class ByteVectors extends Library {
   }
   public class ByteVectorLength extends BuiltInProcedure {
     public ByteVectorLength(Environment env) { super("bytevector-length", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, ByteVector.class);
       ByteVector v1 = (ByteVector) ((Pair)arguments).getCar();
       return new LongInteger(v1.getVector().size(), true);
@@ -73,7 +76,7 @@ public class ByteVectors extends Library {
   }
   public class ByteVectorRef extends BuiltInProcedure {
     public ByteVectorRef(Environment env) { super("bytevector-u8-ref", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, ByteVector.class, Integer.class, Integer.class);
       ByteVector v1 = (ByteVector) ((Pair)arguments).getCar();
       Integer k = (Integer) ((Pair)((Pair)arguments).getCdr()).getCar();
@@ -85,7 +88,7 @@ public class ByteVectors extends Library {
   }
   public class ByteVectorSet extends BuiltInProcedure {
     public ByteVectorSet(Environment env) { super("bytevector-u8-set!", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, ByteVector.class, Integer.class);
       ByteVector v1 = (ByteVector) ((Pair)arguments).getCar();
       Integer k = (Integer) ((Pair)((Pair)arguments).getCdr()).getCar();
@@ -95,7 +98,7 @@ public class ByteVectors extends Library {
   }
   public class ByteVectorCopy extends BuiltInProcedure {
     public ByteVectorCopy(Environment env) { super("bytevector-copy", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, 3, ByteVector.class, Integer.class, Integer.class);
       List<Byte> v = ((ByteVector) ((Pair)arguments).getCar()).getVector();
       int from = 0, to = v.size();
@@ -116,7 +119,7 @@ public class ByteVectors extends Library {
   }
   public class ByteVectorCopyTo extends BuiltInProcedure {
     public ByteVectorCopyTo(Environment env) { super("bytevector-copy!", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 3, 5, ByteVector.class, Integer.class, ByteVector.class, Integer.class, Integer.class);
       ByteVector result = (ByteVector) ((Pair)arguments).getCar();
       List<Byte> dst = result.getVector();
@@ -139,7 +142,7 @@ public class ByteVectors extends Library {
   }
   public class ByteVectorAppend extends BuiltInProcedure {
     public ByteVectorAppend(Environment env) { super("bytevector-append", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, java.lang.Integer.MAX_VALUE, ByteVector.class);
       List<Byte> result = new ArrayList<Byte>();
       while (arguments.isPair()) {
@@ -151,7 +154,7 @@ public class ByteVectors extends Library {
   }
   public class Utf8ToString extends BuiltInProcedure {
     public Utf8ToString(Environment env) { super("utf8->string", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, 3, ByteVector.class, Integer.class, Integer.class);
       List<Byte> v = ((ByteVector) ((Pair)arguments).getCar()).getVector();
       int from = 0, to = v.size();
@@ -192,7 +195,7 @@ public class ByteVectors extends Library {
   }
   public class String2Utf8 extends BuiltInProcedure {
     public String2Utf8(Environment env) { super("string->utf8", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, 3, String.class, Integer.class, Integer.class);
       StringBuilder s = ((String) ((Pair)arguments).getCar()).getStringBuilder();
       int from = 0, to = s.length();

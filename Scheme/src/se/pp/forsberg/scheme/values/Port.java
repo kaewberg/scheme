@@ -17,9 +17,9 @@ import java.io.Writer;
 
 import se.pp.forsberg.scheme.Parser;
 import se.pp.forsberg.scheme.SchemeException;
+import se.pp.forsberg.scheme.values.errors.Error;
 import se.pp.forsberg.scheme.values.errors.FileError;
 import se.pp.forsberg.scheme.values.errors.ReadError;
-import se.pp.forsberg.scheme.values.errors.RuntimeError;
 import se.pp.forsberg.scheme.values.numbers.LongInteger;
 
 public class Port extends Value {
@@ -49,7 +49,7 @@ public class Port extends Value {
   public Port(InputStream in) {
     setInput(in);
   }
-  public Port(File file, Mode mode) {
+  public Port(File file, Mode mode) throws SchemeException {
     try {
       if (mode == Mode.IN) {
         setInput(new FileInputStream(file));
@@ -93,24 +93,36 @@ public class Port extends Value {
     outputOpen = true;
   }
   
-  public Value read() {
-    if (in == null) throw new SchemeException(new FileError(new IllegalArgumentException("Port is write only")));
+  public Value read() throws SchemeException {
+    if (in == null) throw new SchemeException(new FileError("Port is write only"));
     return parser.read();
   }
-  public void write(Value value) throws IOException {
-    if (out == null) throw new SchemeException(new FileError(new IllegalArgumentException("Port is read only")));
-    writer.write(value.toStringSafe());
-    newline();
+  public void write(Value value) throws SchemeException  {
+    if (out == null) throw new SchemeException(new FileError("Port is read only"));
+    try {
+      writer.write(value.toStringSafe());
+      newline();
+    } catch (IOException e) {
+      throw new SchemeException(new FileError(e));
+    }
   }
-  public void writeShared(Value value) throws IOException {
-    if (out == null) throw new SchemeException(new FileError(new IllegalArgumentException("Port is read only")));
-    writer.write(value.toStringShared());
-    newline();
+  public void writeShared(Value value) throws SchemeException {
+    if (out == null) throw new SchemeException(new FileError("Port is read only"));
+    try {
+      writer.write(value.toStringShared());
+      newline();
+    } catch (IOException e) {
+      throw new SchemeException(new FileError(e));
+    }
   }
-  public void writeSimple(Value value) throws IOException {
-    if (out == null) throw new SchemeException(new FileError(new IllegalArgumentException("Port is read only")));
-    writer.write(value.toStringSimple());
-    newline();
+  public void writeSimple(Value value) throws SchemeException {
+    if (out == null) throw new SchemeException(new FileError("Port is read only"));
+    try {
+      writer.write(value.toStringSimple());
+      newline();
+    } catch (IOException e) {
+      throw new SchemeException(new FileError(e));
+    }
   }
   public void close() {
     //Error error = null;
@@ -132,9 +144,9 @@ public class Port extends Value {
     }
     //if (error != null) throw new SchemeException(error);
   }
-  public void closeInput() {
+  public void closeInput() throws SchemeException {
     //Error error = null;
-    if (in == null) throw new SchemeException(new RuntimeError("Not an input port", this));
+    if (in == null) throw new SchemeException("Not an input port", this);
     if (inputOpen) {
       try {
         in.close();
@@ -145,8 +157,8 @@ public class Port extends Value {
     }
   }
 
-  public void closeOutput() {
-    if (out == null) throw new SchemeException(new RuntimeError("Not an input port", this));
+  public void closeOutput() throws SchemeException {
+    if (out == null) throw new SchemeException("Not an input port", this);
     if (outputOpen) {
       try {
         out.close();
@@ -187,38 +199,38 @@ public class Port extends Value {
   public java.lang.String toString() {
     return "[Port]";
   }
-  public static Port openInputFile(String filename) {
+  public static Port openInputFile(String filename) throws SchemeException {
     try {
      return new Port(new FileInputStream(filename.getString()), null);
     } catch (FileNotFoundException x) {
       throw new SchemeException(new FileError(x));
     }
   }
-  public static Port openOutputFile(String filename) {
+  public static Port openOutputFile(String filename) throws SchemeException {
     try {
      return new Port(null, new FileOutputStream(filename.getString()));
     } catch (FileNotFoundException x) {
       throw new SchemeException(new FileError(x));
     }
   }
-  public String getOutputString() {
+  public String getOutputString() throws SchemeException {
     if (out == null || !(out instanceof ByteArrayOutputStream)) {
-      throw new SchemeException(new RuntimeError("Not a string/bytevector port", this));
+      throw new SchemeException("Not a string/bytevector port", this);
     }
     try {
       return new String(((ByteArrayOutputStream) out).toString("utf-8"));
     } catch (UnsupportedEncodingException e) {
-      throw new RuntimeException(e);
+      throw new SchemeException(new ReadError(e));
     }
   }
-  public ByteVector getOutputBytevector() {
+  public ByteVector getOutputBytevector() throws SchemeException {
     if (out == null || !(out instanceof ByteArrayOutputStream)) {
-      throw new SchemeException(new RuntimeError("Not a string/bytevector port", this));
+      throw new SchemeException("Not a string/bytevector port", this);
     }
     return new ByteVector(((ByteArrayOutputStream) out).toByteArray());
   }
-  public Value readChar() {
-    if (in == null) throw new SchemeException(new RuntimeError("Not an input port", this));
+  public Value readChar() throws SchemeException {
+    if (in == null) throw new SchemeException("Not an input port", this);
     int c;
     try {
       c = reader.read();
@@ -228,8 +240,8 @@ public class Port extends Value {
     if (c == -1) return Eof.EOF;
     return new Character((char) c);
   }
-  public Value peekChar() {
-    if (in == null) throw new SchemeException(new RuntimeError("Not an input port", this));
+  public Value peekChar() throws SchemeException {
+    if (in == null) throw new SchemeException("Not an input port", this);
     int c;
     try {
       reader.mark(1);
@@ -245,24 +257,24 @@ public class Port extends Value {
     }
     return new Character((char) c);
   }
-  public Value readLine() {
-    if (in == null) throw new SchemeException(new RuntimeError("Not an input port", this));
+  public Value readLine() throws SchemeException {
+    if (in == null) throw new SchemeException("Not an input port", this);
     try {
       return new String(reader.readLine());
     } catch (IOException e) {
       throw new SchemeException(new ReadError(e));
     }
   }
-  public Value isCharReady() {
-    if (in == null) throw new SchemeException(new RuntimeError("Not an input port", this));
+  public Value isCharReady() throws SchemeException {
+    if (in == null) throw new SchemeException("Not an input port");
     try {
       return (realIn.available() > 0)? Boolean.TRUE : Boolean.FALSE;
     } catch (IOException e) {
       throw new SchemeException(new ReadError(e));
     }
   }
-  public Value readByte() {
-    if (in == null) throw new SchemeException(new RuntimeError("Not an input port", this));
+  public Value readByte() throws SchemeException {
+    if (in == null) throw new SchemeException("Not an input port", this);
     int c;
     try {
       c = in.read();
@@ -272,8 +284,8 @@ public class Port extends Value {
     if (c == -1) return Eof.EOF;
     return new LongInteger(c, true);
   }
-  public Value peekByte() {
-    if (in == null) throw new SchemeException(new RuntimeError("Not an input port", this));
+  public Value peekByte() throws SchemeException {
+    if (in == null) throw new SchemeException("Not an input port", this);
     int c;
     try {
       c = in.read();
@@ -288,43 +300,69 @@ public class Port extends Value {
     }
     return new LongInteger(c, true);
   }
-  public Value isByteReady() {
-    if (in == null) throw new SchemeException(new RuntimeError("Not an input port", this));
+  public Value isByteReady() throws SchemeException {
+    if (in == null) throw new SchemeException("Not an input port", this);
     try {
       return (realIn.available() > 0)? Boolean.TRUE : Boolean.FALSE;
     } catch (IOException e) {
       throw new SchemeException(new ReadError(e));
     }
   }
-  public void display(Value v) throws IOException {
-    if (out == null) throw new SchemeException(new RuntimeError("Not an output port", this));
-    if (v.isChar()) {
-      writer.write(((Character) v).getCharacter());
-      newline();
-    } else if (v.isString()) {
-      writer.write(((String) v).getString());
-      newline();
-    } else if (v.isIdentifier()) {
-      writer.write(((Identifier) v).getIdentifier());
-      newline();
-    } else {
-      write(v);
+  public void display(Value v) throws SchemeException {
+    if (out == null) throw new SchemeException("Not an output port", this);
+    try {
+      if (v.isChar()) {
+        writer.write(((Character) v).getCharacter());
+        newline();
+      } else if (v.isString()) {
+        writer.write(((String) v).getString());
+        newline();
+      } else if (v.isIdentifier()) {
+        writer.write(((Identifier) v).getIdentifier());
+        newline();
+      } else {
+        write(v);
+      }
+    } catch (IOException x) {
+      throw new SchemeException(new Error(x));
     }
   }
-  public void newline() throws IOException {
-    if (out == null) throw new SchemeException(new RuntimeError("Not an output port", this));
-    writer.write("\n");
+  public void newline() throws SchemeException {
+    if (out == null) throw new SchemeException("Not an output port", this);
+    try {
+      writer.write("\n");
+    } catch (IOException e) {
+      throw new SchemeException(new Error(e));
+    }
   }
-  public void write(java.lang.String s) throws IOException {
-    if (out == null) throw new SchemeException(new RuntimeError("Not an output port", this));
-    writer.write(s);
+  public void write(java.lang.String s) throws  SchemeException {
+    if (out == null) throw new SchemeException("Not an output port", this);
+    try {
+      writer.write(s);
+    } catch (IOException e) {
+      throw new SchemeException(new Error(e));
+    }
   }
-  public void write(byte b) throws IOException {
-    if (out == null) throw new SchemeException(new RuntimeError("Not an output port", this));
-    out.write(b);
+  public void write(byte b) throws SchemeException {
+    if (out == null) throw new SchemeException("Not an output port", this);
+    try {
+      out.write(b);
+    } catch (IOException e) {
+      throw new SchemeException(new Error(e));
+    }
   }
-  public void flush() throws IOException {
-    if (out == null) throw new SchemeException(new RuntimeError("Not an output port", this));
-    out.flush();
+  public void flush() throws SchemeException {
+    if (out == null) throw new SchemeException("Not an output port", this);
+    try {
+      out.flush();
+    } catch (IOException e) {
+      throw new SchemeException(new Error(e));
+    }
+  }
+  public boolean isInputPortOpen() {
+    return inputOpen;
+  }
+  public boolean isOutputPortOpen() {
+    return outputOpen;
   }
 }

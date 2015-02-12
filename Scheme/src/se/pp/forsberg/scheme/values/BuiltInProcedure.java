@@ -2,7 +2,6 @@ package se.pp.forsberg.scheme.values;
 
 import se.pp.forsberg.scheme.Op;
 import se.pp.forsberg.scheme.SchemeException;
-import se.pp.forsberg.scheme.values.errors.RuntimeError;
 
 public abstract class BuiltInProcedure extends Procedure {
 
@@ -11,8 +10,8 @@ public abstract class BuiltInProcedure extends Procedure {
       super(name, null);
     }
     @Override
-    public Value apply(Value arguments) {
-      throw new SchemeException(new RuntimeError(new IllegalArgumentException("TODO: implement " + getName())));
+    public Value apply(Value arguments) throws SchemeException {
+      throw new SchemeException("TODO: implement " + getName());
     }
   }
   

@@ -34,7 +34,7 @@ public class PatternKeyword extends Keyword {
   
   protected interface Action {
     //Value match(Environment env, Value pattern, Value expression, Map<Identifier, Binding> bindings);
-    Value match(Environment env, Value pattern, Value expression, Bindings bindings);
+    Value match(Environment env, Value pattern, Value expression, Bindings bindings) throws SchemeException;
     Op match(Op parent, Environment env, Value pattern, Value expression, Bindings bindings);
   }
 
@@ -42,7 +42,12 @@ public class PatternKeyword extends Keyword {
   public abstract class SimpleAction implements Action {
     @Override
     public Op match(Op op, Environment env, Value pattern, Value expression, Bindings bindings) {
-      Value v = match(env, pattern, expression, bindings);
+      Value v;
+      try {
+        v = match(env, pattern, expression, bindings);
+      } catch (SchemeException x) {
+        return op.getEvaluator().error(x.getError());
+      }
       op.getEvaluator().setValue(v);
       return op.getParent();
     }
@@ -375,7 +380,7 @@ public class PatternKeyword extends Keyword {
 //    throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid use of keyword " + getKeyword())));
 //  }
   
-  public Value apply(Pair expression, Environment env) {
+  public Value apply(Pair expression, Environment env) throws SchemeException {
     for (Rule rule: rules) {
       //int i = 1+1;
       Bindings bindings = new Bindings(rule.getAllIdentifiers());
@@ -383,7 +388,7 @@ public class PatternKeyword extends Keyword {
         return rule.getAction().match(env, rule.getPattern(), expression, bindings);
       }
     }
-    throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid use of keyword " + getKeyword())));
+    throw new SchemeException("Invalid use of keyword", this);
   }
   @Override
   /**

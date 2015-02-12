@@ -8,6 +8,7 @@ import se.pp.forsberg.scheme.values.Nil;
 import se.pp.forsberg.scheme.values.Pair;
 import se.pp.forsberg.scheme.values.String;
 import se.pp.forsberg.scheme.values.Value;
+import se.pp.forsberg.scheme.values.errors.Error;
 
 
 /*
@@ -153,7 +154,7 @@ public class Evaluator {
   
   Value value = null;
   
-  public Value eval(Value v, Environment env) {
+  public Value eval(Value v, Environment env) throws SchemeException {
     Op stack = new Op.Done(this, env);
     stack = new Op.Eval(stack);
     //value = new Value[]{v};
@@ -183,8 +184,8 @@ public class Evaluator {
   public void setValue(Value v) {
     value = v;
   }
-  public Op error(java.lang.String message, Value irritant) { return new Op.ErrorOp(this,new String(message), irritant); }
-  public Op error(String message, Value irritant) { return new Op.ErrorOp(this, message, irritant); }
+  public Op error(java.lang.String message, Value... irritants) { return new Op.ErrorOp(this, new Error(message, irritants)); }
+  public Op error(String message, Value irritants) { return new Op.ErrorOp(this, new Error(message, irritants)); }
   public Op error(Value error) { return new Op.ErrorOp(this, error);  }
   public Value getValue() { return value; }
   public Op error(Value error, boolean continuable) { return new Op.ErrorOp(this, error, continuable); }

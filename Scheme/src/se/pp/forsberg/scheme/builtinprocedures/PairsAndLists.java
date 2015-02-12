@@ -15,7 +15,7 @@ import se.pp.forsberg.scheme.values.numbers.LongInteger;
 
 public class PairsAndLists extends Library {
   
-  public PairsAndLists() {
+  public PairsAndLists() throws SchemeException {
     Library.load(Library.makeName("scheme-impl", "equal"), getEnvironment());
   }
   
@@ -25,14 +25,14 @@ public class PairsAndLists extends Library {
 
   public class IsPair extends BuiltInProcedure {
     public IsPair(Environment env) { super("pair?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Value.class);
       return ((Pair)arguments).getCar().isPair()? Boolean.TRUE : Boolean.FALSE;
     }
   }
   public class Cons extends BuiltInProcedure {
     public Cons(Environment env) { super("cons", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, Value.class);
       Value car = ((Pair)arguments).getCar();
       Value cdr = ((Pair) ((Pair)arguments).getCdr()).getCar();
@@ -41,7 +41,7 @@ public class PairsAndLists extends Library {
   }
   public class Car extends BuiltInProcedure {
     public Car(Environment env) { super("car", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       return pair.getCar();
@@ -49,7 +49,7 @@ public class PairsAndLists extends Library {
   }
   public class Cdr extends BuiltInProcedure {
     public Cdr(Environment env) { super("cdr", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       return pair.getCdr();
@@ -57,7 +57,7 @@ public class PairsAndLists extends Library {
   }
   public class SetCar extends BuiltInProcedure {
     public SetCar(Environment env) { super("set-car!", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class, Value.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       Value car = ((Pair) ((Pair)arguments).getCdr()).getCar();
@@ -68,7 +68,7 @@ public class PairsAndLists extends Library {
   }
   public class SetCdr extends BuiltInProcedure {
     public SetCdr(Environment env) { super("set-cdr!", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class, Value.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       Value cdr = ((Pair) ((Pair)arguments).getCdr()).getCar();
@@ -80,7 +80,7 @@ public class PairsAndLists extends Library {
   /*
   public class Caar extends BuiltInProcedure {
     public Caar(Environment env) { super("caar", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCar().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -90,7 +90,7 @@ public class PairsAndLists extends Library {
   }
   public class Cadr extends BuiltInProcedure {
     public Cadr(Environment env) { super("cadr", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCdr().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -100,7 +100,7 @@ public class PairsAndLists extends Library {
   }
   public class Cdar extends BuiltInProcedure {
     public Cdar(Environment env) { super("cdar", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCar().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -110,7 +110,7 @@ public class PairsAndLists extends Library {
   }
   public class Cddr extends BuiltInProcedure {
     public Cddr(Environment env) { super("cddr", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCdr().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -121,7 +121,7 @@ public class PairsAndLists extends Library {
 
   public class Caaar extends BuiltInProcedure {
     public Caaar(Environment env) { super("caaar", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCar().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -133,7 +133,7 @@ public class PairsAndLists extends Library {
   }
   public class Cdaar extends BuiltInProcedure {
     public Cdaar(Environment env) { super("cdaar", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCar().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -145,7 +145,7 @@ public class PairsAndLists extends Library {
   }
   public class Caadr extends BuiltInProcedure {
     public Caadr(Environment env) { super("caadr", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCdr().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -157,7 +157,7 @@ public class PairsAndLists extends Library {
   }
   public class Cdadr extends BuiltInProcedure {
     public Cdadr(Environment env) { super("cdadr", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCdr().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -169,7 +169,7 @@ public class PairsAndLists extends Library {
   }
   public class Cadar extends BuiltInProcedure {
     public Cadar(Environment env) { super("cadar", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCar().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -181,7 +181,7 @@ public class PairsAndLists extends Library {
   }
   public class Cddar extends BuiltInProcedure {
     public Cddar(Environment env) { super("cddar", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCar().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -193,7 +193,7 @@ public class PairsAndLists extends Library {
   }
   public class Caddr extends BuiltInProcedure {
     public Caddr(Environment env) { super("caddr", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCdr().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -205,7 +205,7 @@ public class PairsAndLists extends Library {
   }
   public class Cdddr extends BuiltInProcedure {
     public Cdddr(Environment env) { super("cdddr", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCdr().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -218,7 +218,7 @@ public class PairsAndLists extends Library {
 
   public class Caaaar extends BuiltInProcedure {
     public Caaaar(Environment env) { super("caaaar", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCar().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -232,7 +232,7 @@ public class PairsAndLists extends Library {
   }
   public class Cdaaar extends BuiltInProcedure {
     public Cdaaar(Environment env) { super("cdaaar", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCar().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -246,7 +246,7 @@ public class PairsAndLists extends Library {
   }
   public class Cadaar extends BuiltInProcedure {
     public Cadaar(Environment env) { super("cadaar", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCar().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -260,7 +260,7 @@ public class PairsAndLists extends Library {
   }
   public class Cddaar extends BuiltInProcedure {
     public Cddaar(Environment env) { super("cddaar", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCar().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -274,7 +274,7 @@ public class PairsAndLists extends Library {
   }
   public class Caaadr extends BuiltInProcedure {
     public Caaadr(Environment env) { super("caaadr", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCdr().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -288,7 +288,7 @@ public class PairsAndLists extends Library {
   }
   public class Cdaadr extends BuiltInProcedure {
     public Cdaadr(Environment env) { super("cdaadr", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCdr().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -302,7 +302,7 @@ public class PairsAndLists extends Library {
   }
   public class Cadadr extends BuiltInProcedure {
     public Cadadr(Environment env) { super("cadadr", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCdr().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -316,7 +316,7 @@ public class PairsAndLists extends Library {
   }
   public class Cddadr extends BuiltInProcedure {
     public Cddadr(Environment env) { super("cddadr", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCdr().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -330,7 +330,7 @@ public class PairsAndLists extends Library {
   }
   public class Caadar extends BuiltInProcedure {
     public Caadar(Environment env) { super("caadar", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCar().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -344,7 +344,7 @@ public class PairsAndLists extends Library {
   }
   public class Cdadar extends BuiltInProcedure {
     public Cdadar(Environment env) { super("cdadar", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCar().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -358,7 +358,7 @@ public class PairsAndLists extends Library {
   }
   public class Caddar extends BuiltInProcedure {
     public Caddar(Environment env) { super("caddar", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCar().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -372,7 +372,7 @@ public class PairsAndLists extends Library {
   }
   public class Cdddar extends BuiltInProcedure {
     public Cdddar(Environment env) { super("cdddar", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCar().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -386,7 +386,7 @@ public class PairsAndLists extends Library {
   }
   public class Caaddr extends BuiltInProcedure {
     public Caaddr(Environment env) { super("caaddr", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCdr().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -400,7 +400,7 @@ public class PairsAndLists extends Library {
   }
   public class Cdaddr extends BuiltInProcedure {
     public Cdaddr(Environment env) { super("cdaddr", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCdr().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -414,7 +414,7 @@ public class PairsAndLists extends Library {
   }
   public class Cadddr extends BuiltInProcedure {
     public Cadddr(Environment env) { super("cadddr", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCdr().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -428,7 +428,7 @@ public class PairsAndLists extends Library {
   }
   public class Cddddr extends BuiltInProcedure {
     public Cddddr(Environment env) { super("cddddr", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Pair.class);
       Pair pair = (Pair) ((Pair)arguments).getCar();
       if (!pair.getCdr().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Invalid argument to " + getName())));
@@ -443,14 +443,14 @@ public class PairsAndLists extends Library {
   */
   public class IsNull extends BuiltInProcedure {
     public IsNull(Environment env) { super("null?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Value.class);
       return ((Pair)arguments).getCar().isNull()? Boolean.TRUE : Boolean.FALSE;
     }
   }
   public class IsList extends BuiltInProcedure {
     public IsList(Environment env) { super("list?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Value.class);
       Value v = ((Pair)arguments).getCar();
       while (v.isPair()) {
@@ -461,7 +461,7 @@ public class PairsAndLists extends Library {
   }
   public class MakeList extends BuiltInProcedure {
     public MakeList(Environment env) { super("make-list", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, 2);
       if (!((Pair)arguments).getCar().isInteger()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Illegal argument call to " + getName() + " expected integer")));
       Integer k = (Integer) ((Pair)arguments).getCar();
@@ -480,7 +480,7 @@ public class PairsAndLists extends Library {
   }
   public class List extends BuiltInProcedure {
     public List(Environment env) { super("list", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       if (arguments.isNull()) return Nil.NIL;
       if (!arguments.isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Illegal argument call to " + getName() + " expected list")));
       Pair p = (Pair) arguments;
@@ -489,7 +489,7 @@ public class PairsAndLists extends Library {
   }
   public class Length extends BuiltInProcedure {
     public Length(Environment env) { super("length", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1);
       Value list = ((Pair) arguments).getCar();
       Integer result = LongInteger.ZERO;
@@ -503,7 +503,7 @@ public class PairsAndLists extends Library {
   }
   public class Append extends BuiltInProcedure {
     public Append(Environment env) { super("append", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       if (arguments.isNull()) return Nil.NIL;
       Value list = ((Pair) arguments).getCar();
       if (((Pair) arguments).getCdr().isNull()) return list;
@@ -517,60 +517,60 @@ public class PairsAndLists extends Library {
     }
   }
   public class Reverse extends BuiltInProcedure {
-    private Value reverse(Value src, Value dst) {
+    private Value reverse(Value src, Value dst) throws SchemeException {
       if (src.isNull()) return dst;
-      if (!src.isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Illegal argument call to " + getName() + " expected list")));
+      if (!src.isPair()) throw new SchemeException("Illegal argument call to " + getName() + " expected list", src);
       Pair p = (Pair)src;
       return reverse(p.getCdr(), new Pair(p.getCar(), dst));
     }
     public Reverse(Environment env) { super("reverse", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1);
       return reverse(((Pair)arguments).getCar(), Nil.NIL);
     }
   }
-  protected Value listTail(Value list, Integer k) {
+  protected Value listTail(Value list, Integer k) throws SchemeException {
     if (k.isZero()) return list;
     if (list.isNull()) {
-      throw new SchemeException(new RuntimeError(new IllegalArgumentException("Illegal argument call to list-tail, list is too short")));
+      throw new SchemeException("Illegal argument call to list-tail, list is too short", list, k);
     }
     return listTail(((Pair)list).getCdr(), k.minus(LongInteger.ONE));
   }
   public class ListTail extends BuiltInProcedure {
     public ListTail(Environment env) { super("list-tail", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Value.class, Integer.class);
       Value list = ((Pair) arguments).getCar();
-      if (!list.isPair() && !list.isNull()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Illegal argument call to " + getName() + " expected list")));
+      if (!list.isPair() && !list.isNull()) throw new SchemeException("Illegal argument call to " + getName() + " expected list", list);
       Integer k = (Integer) ((Pair)((Pair) arguments).getCdr()).getCar();
-      if (k.isNegative()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Illegal argument call to " + getName() + " expected positive integer")));
+      if (k.isNegative()) throw new SchemeException("Illegal argument call to " + getName() + " expected positive integer", k);
       return listTail(list, k);
     }
   }
   public class ListRef extends BuiltInProcedure {
     public ListRef(Environment env) { super("list-ref", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Value.class, Integer.class);
       Value list = ((Pair) arguments).getCar();
-      if (!list.isPair() && !list.isNull()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Illegal argument call to " + getName() + " expected list")));
+      if (!list.isPair() && !list.isNull()) throw new SchemeException("Illegal argument call to " + getName() + " expected list", list);
       Integer k = (Integer) ((Pair)((Pair) arguments).getCdr()).getCar();
-      if (k.isNegative()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Illegal argument call to " + getName() + " expected positive integer")));
+      if (k.isNegative()) throw new SchemeException("Illegal argument call to " + getName() + " expected positive integer", k);
       Value v = listTail(list, k);
-      if (!v.isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Illegal argument call to " + getName() + " list is too short")));
+      if (!v.isPair()) throw new SchemeException("Illegal argument call to " + getName() + " list is too short", arguments);
       return ((Pair)v).getCar();
     }
   }
   public class ListSet extends BuiltInProcedure {
     public ListSet(Environment env) { super("list-set!", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Value.class, Integer.class, Value.class);
       Value list = ((Pair) arguments).getCar();
-      if (!list.isPair() && !list.isNull()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Illegal argument call to " + getName() + " expected list")));
+      if (!list.isPair() && !list.isNull()) throw new SchemeException("Illegal argument call to " + getName() + " expected list", list);
       Integer k = (Integer) ((Pair)((Pair) arguments).getCdr()).getCar();
       Value v = ((Pair)((Pair)((Pair) arguments).getCdr()).getCdr()).getCar();
-      if (k.isNegative()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Illegal argument call to " + getName() + " expected positive integer")));
+      if (k.isNegative()) throw new SchemeException("Illegal argument call to " + getName() + " expected positive integer", k);
       Value tail = listTail(list, k);
-      if (!tail.isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Illegal argument call to " + getName() + " list is too short")));
+      if (!tail.isPair()) throw new SchemeException("Illegal argument call to " + getName() + " list is too short", arguments);
       ((Pair)tail).setCar(v);
       return Nil.NIL;
     }
@@ -578,9 +578,9 @@ public class PairsAndLists extends Library {
   interface Predicate<T> {
     boolean equal(T o1, T o2);
   }
-  protected Value member(Value obj, Value list, Procedure compare) {
+  protected Value member(Value obj, Value list, Procedure compare) throws SchemeException {
     if (list.isNull()) return Boolean.FALSE;
-    if (!list.isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Malformed list in member")));
+    if (!list.isPair()) throw new SchemeException("Malformed list in member", list);
     Pair p = (Pair) list;
     if (compare.apply(new Pair(p.getCar(), new Pair(obj, Nil.NIL))) != Boolean.FALSE) {
       return list;
@@ -589,27 +589,27 @@ public class PairsAndLists extends Library {
   }
   public class Memq extends BuiltInProcedure {
     public Memq(Environment env) { super("memq", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Value.class, Value.class);
       Value obj = ((Pair) arguments).getCar();
       Value list = ((Pair)((Pair) arguments).getCdr()).getCar();
-      if (!list.isPair() && !list.isNull()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Illegal argument call to " + getName() + " expected list")));
+      if (!list.isPair() && !list.isNull()) throw new SchemeException("Illegal argument call to " + getName() + " expected list", list);
       return member(obj, list, (Procedure) getEnvironment().lookup(new Identifier("eq?")));
     }
   }
   public class Memv extends BuiltInProcedure {
     public Memv(Environment env) { super("memv", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Value.class, Value.class);
       Value obj = ((Pair) arguments).getCar();
       Value list = ((Pair)((Pair) arguments).getCdr()).getCar();
-      if (!list.isPair() && !list.isNull()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Illegal argument call to " + getName() + " expected list")));
+      if (!list.isPair() && !list.isNull()) throw new SchemeException("Illegal argument call to " + getName() + " expected list", list);
       return member(obj, list, (Procedure) getEnvironment().lookup(new Identifier("eqv?")));
     }
   }
   public class Member extends BuiltInProcedure {
     public Member(Environment env) { super("member", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, 3, Value.class, Value.class, Procedure.class);
       Value obj = ((Pair) arguments).getCar();
       Value list = ((Pair)((Pair) arguments).getCdr()).getCar();
@@ -621,11 +621,11 @@ public class PairsAndLists extends Library {
       return member(obj, list, compare);
     }
   }
-  protected Value assoc(Value obj, Value list, Procedure compare) {
+  protected Value assoc(Value obj, Value list, Procedure compare) throws SchemeException {
     if (list.isNull()) return Boolean.FALSE;
-    if (!list.isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Malformed list in assoc")));
+    if (!list.isPair()) throw new SchemeException("Malformed list in assoc", list);
     Pair p = (Pair) list;
-    if (!p.getCar().isPair()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Malformed alist in assoc")));
+    if (!p.getCar().isPair()) throw new SchemeException("Malformed alist in assoc", list);
     p = (Pair) p.getCar();
     if (compare.apply(new Pair(p.getCar(), new Pair(obj, Nil.NIL))) != Boolean.FALSE) {
       return p;
@@ -634,27 +634,27 @@ public class PairsAndLists extends Library {
   }
   public class Assq extends BuiltInProcedure {
     public Assq(Environment env) { super("assq", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Value.class, Value.class);
       Value obj = ((Pair) arguments).getCar();
       Value list = ((Pair)((Pair) arguments).getCdr()).getCar();
-      if (!list.isPair() && !list.isNull()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Illegal argument call to " + getName() + " expected list")));
+      if (!list.isPair() && !list.isNull()) throw new SchemeException("Illegal argument call to " + getName() + " expected list", list);
       return assoc(obj, list, (Procedure) getEnvironment().lookup(new Identifier("eq?")));
     }
   }
   public class Assv extends BuiltInProcedure {
     public Assv(Environment env) { super("assv", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Value.class, Value.class);
       Value obj = ((Pair) arguments).getCar();
       Value list = ((Pair)((Pair) arguments).getCdr()).getCar();
-      if (!list.isPair() && !list.isNull()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Illegal argument call to " + getName() + " expected list")));
+      if (!list.isPair() && !list.isNull()) throw new SchemeException("Illegal argument call to " + getName() + " expected list", list);
       return assoc(obj, list, (Procedure) getEnvironment().lookup(new Identifier("eqv?")));
     }
   }
   public class Assoc extends BuiltInProcedure {
     public Assoc(Environment env) { super("assoc", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, 3, Value.class, Value.class, Procedure.class);
       Value obj = ((Pair) arguments).getCar();
       Value list = ((Pair)((Pair) arguments).getCdr()).getCar();
@@ -662,7 +662,7 @@ public class PairsAndLists extends Library {
       if (!((Pair)((Pair) arguments).getCdr()).getCdr().isNull()) {
         compare = (Procedure) ((Pair)((Pair)((Pair) arguments).getCdr()).getCdr()).getCar();
       }
-      if (!list.isPair() && !list.isNull()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Illegal argument call to " + getName() + " expected list")));
+      if (!list.isPair() && !list.isNull()) throw new SchemeException("Illegal argument call to " + getName() + " expected list", list);
       return assoc(obj, list, compare);
     }
   }
@@ -673,10 +673,10 @@ public class PairsAndLists extends Library {
       return new Pair(p.getCar(), listCopy(p.getCdr()));
     }
     public ListCopy(Environment env) { super("list-copy", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1);
       Value list = ((Pair) arguments).getCar();
-      if (!list.isPair() && !list.isNull()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Illegal argument call to " + getName() + " expected list")));
+      if (!list.isPair() && !list.isNull()) throw new SchemeException("Illegal argument call to " + getName() + " expected list", list);
       return listCopy(list);
     }
   }

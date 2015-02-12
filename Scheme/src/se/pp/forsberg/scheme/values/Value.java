@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import se.pp.forsberg.scheme.SchemeException;
+
 
 
 public abstract class Value {
@@ -52,7 +54,7 @@ public abstract class Value {
 //      return replay(continuation, new Continuation());
 //    }
 //  }
-  public Value eval(Environment env) { return this; }
+  public Value eval(Environment env) throws SchemeException { return this; }
   //abstract public Value replay(Continuation replay, Continuation continuation);
   
   protected class ValueEqv {

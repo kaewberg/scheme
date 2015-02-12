@@ -12,6 +12,9 @@ import se.pp.forsberg.scheme.values.numbers.Real;
 
 public class Inexact extends Library {
 
+  public Inexact() throws SchemeException {
+    super();
+  }
   public static Value getName() {
     return makeName("scheme", "inexact");
   }
@@ -19,14 +22,14 @@ public class Inexact extends Library {
 
   class Exp extends BuiltInProcedure {
     public Exp(Environment env) { super("exp", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Number.class);
       return ((Number)((Pair)arguments).getCar()).exp();
     }
   }
   class Log extends BuiltInProcedure {
     public Log(Environment env) { super("log", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, 2, Number.class);
       if (((Pair) ((Pair)arguments).getCdr()).getCdr().isNull()) {
         return ((Number)((Pair)arguments).getCar()).log();
@@ -37,42 +40,42 @@ public class Inexact extends Library {
   }
   class Sin extends BuiltInProcedure {
     public Sin(Environment env) { super("sin", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Number.class);
       return ((Number)((Pair)arguments).getCar()).sin();
     }
   }
   class Cos extends BuiltInProcedure {
     public Cos(Environment env) { super("cos", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Number.class);
       return ((Number)((Pair)arguments).getCar()).cos();
     }
   }
   class Tan extends BuiltInProcedure {
     public Tan(Environment env) { super("tan", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Number.class);
       return ((Number)((Pair)arguments).getCar()).tan();
     }
   }
   class Asin extends BuiltInProcedure {
     public Asin(Environment env) { super("asin", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Number.class);
       return ((Number)((Pair)arguments).getCar()).asin();
     }
   }
   class Acos extends BuiltInProcedure {
     public Acos(Environment env) { super("acos", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Number.class);
       return ((Number)((Pair)arguments).getCar()).acos();
     }
   }
   class Atan extends BuiltInProcedure {
     public Atan(Environment env) { super("atan", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, 2, Number.class);
       Number n1 = (Number)((Pair)arguments).getCar();
       Number n2 = ((Pair) ((Pair)arguments).getCdr()).getCdr().isNull()? null : (Number) ((Pair) ((Pair)arguments).getCdr()).getCdr();
@@ -86,7 +89,7 @@ public class Inexact extends Library {
   }
   class Sqrt extends BuiltInProcedure {
     public Sqrt(Environment env) { super("sqrt", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Number.class);
       Number z = (Number)((Pair)arguments).getCar();
       return z.sqrt();
@@ -95,7 +98,7 @@ public class Inexact extends Library {
 
   class IsFinite extends BuiltInProcedure {
     public IsFinite(Environment env) { super("finite?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Number.class);
       Number number = (Number) ((Pair)arguments).getCar();
       if (number.getRealPart().isInfinite()) return Boolean.FALSE;
@@ -107,7 +110,7 @@ public class Inexact extends Library {
   }
   class IsInfinite extends BuiltInProcedure {
     public IsInfinite(Environment env) { super("infinite?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Number.class);
       Number number = (Number) ((Pair)arguments).getCar();
       if (number.getRealPart().isInfinite()) return Boolean.TRUE;
@@ -117,7 +120,7 @@ public class Inexact extends Library {
   } 
   class IsNaN extends BuiltInProcedure {
     public IsNaN(Environment env) { super("nan?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Number.class);
       Number number = (Number) ((Pair)arguments).getCar();
       if (number.getRealPart().isNaN()) return Boolean.TRUE;

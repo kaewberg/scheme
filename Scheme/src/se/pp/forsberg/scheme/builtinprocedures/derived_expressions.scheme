@@ -2,9 +2,12 @@
 (import (scheme-impl base))
 (export cond case and or when unless)
 (export let let* letrec letrec* let-values let*-values define-values)
+(export let-syntax letrec-syntax)
 (export begin do)
 (export delay-force make-promise promise-done? promise-value promise-update!)
 (export make-parameter)
+
+(export define-record-type cond-expand parameterize guard promise? force delay)
 
 (begin
 
@@ -94,7 +97,7 @@
 (define-syntax letrec-syntax
   (syntax-rules ()
     ((letrec-syntax ((keyword transformer-spec) ...) body1 body2 ...)
-      ((lambda () (define-syntax keyword transformer-spec) ... body1 body2 ...))))
+      ((lambda () (define-syntax keyword transformer-spec) ... body1 body2 ...)))))
 
 (define-syntax let-syntax
   (syntax-rules ()
@@ -222,6 +225,7 @@
 (define make-promise
   (lambda (done? proc)
     (list (cons done? proc))))
+    
 
 (define (force promise)
   (if (promise-done? promise)
@@ -230,6 +234,9 @@
       (unless (promise-done? promise)
         (promise-update! promise* promise))
       (force promise))))
+      
+(define (promise? x) (error "TODO" 'promise?))
+(define (delay x) (error "TODO" 'delay))
 
 (define promise-done?
   (lambda (x) (car (car x))))
@@ -256,5 +263,8 @@
         (else
           (error "bad parameter syntax"))))))
 
-; TODO Parametrize
+(define (parameterize . x) (error "TODO: parameterize"))
+(define (guard . x) (error "TODO: guard"))
+(define (define-record-type . x) (error "TODO: define-record-type"))
+(define (cond-expand . x) (error "TODO: cond-expand"))
 ))

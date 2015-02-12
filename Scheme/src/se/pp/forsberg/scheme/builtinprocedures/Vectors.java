@@ -19,13 +19,16 @@ import se.pp.forsberg.scheme.values.numbers.Integer;
 import se.pp.forsberg.scheme.values.numbers.LongInteger;
 
 public class Vectors extends Library {
+  public Vectors() throws SchemeException {
+    super();
+  }
   public static Value getName() {
     return new Pair(new Identifier("scheme-impl"), new Pair(new Identifier("vectors"), Nil.NIL));
   }
 
   public class IsVector extends BuiltInProcedure {
     public IsVector(Environment env) { super("vector?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, Value.class);
       Value v = ((Pair)arguments).getCar();
       return v.isVector()? Boolean.TRUE : Boolean.FALSE;
@@ -33,7 +36,7 @@ public class Vectors extends Library {
   }
   public class MakeVector extends BuiltInProcedure {
     public MakeVector(Environment env) { super("make-vector", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, 2, Integer.class, Value.class);
       Integer k = (Integer) ((Pair)arguments).getCar();
       Value fill = Value.UNSPECIFIED;
@@ -49,7 +52,7 @@ public class Vectors extends Library {
   }
   public class _Vector extends BuiltInProcedure {
     public _Vector(Environment env) { super("vector", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 0, java.lang.Integer.MAX_VALUE, Value.class);
       List<Value> result = new ArrayList<Value>();
       while (!arguments.isNull()) {
@@ -61,7 +64,7 @@ public class Vectors extends Library {
   }
   public class VectorLength extends BuiltInProcedure {
     public VectorLength(Environment env) { super("vector-length", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, Vector.class);
       Vector v = (Vector) ((Pair)arguments).getCar();
       return new LongInteger(v.getVector().size(), true);
@@ -69,7 +72,7 @@ public class Vectors extends Library {
   }
   public class VectorRef extends BuiltInProcedure {
     public VectorRef(Environment env) { super("vector-ref", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Vector.class, Integer.class);
       Vector v = (Vector) ((Pair)arguments).getCar();
       Integer k = (Integer) ((Pair)((Pair)arguments).getCdr()).getCar();
@@ -78,7 +81,7 @@ public class Vectors extends Library {
   }
   public class VectorSet extends BuiltInProcedure {
     public VectorSet(Environment env) { super("vector-set!", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Vector.class, Integer.class, Value.class);
       Vector v = (Vector) ((Pair)arguments).getCar();
       Integer k = (Integer) ((Pair)((Pair)arguments).getCdr()).getCar();
@@ -89,7 +92,7 @@ public class Vectors extends Library {
   }
   public class VectorToList extends BuiltInProcedure {
     public VectorToList(Environment env) { super("vector->list", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, 3, Vector.class, Integer.class, Integer.class);
       List<Value> v = ((Vector) ((Pair)arguments).getCar()).getVector();
       int from = 0;
@@ -116,7 +119,7 @@ public class Vectors extends Library {
   }
   public class ListToVector extends BuiltInProcedure {
     public ListToVector(Environment env) { super("list->vector", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, java.lang.Integer.MAX_VALUE, Value.class);
       List<Value> result = new ArrayList<Value>();
       while (!arguments.isNull()) {
@@ -128,7 +131,7 @@ public class Vectors extends Library {
   }
   public class VectorToString extends BuiltInProcedure {
     public VectorToString(Environment env) { super("vector->string", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, 3, Vector.class, Integer.class, Integer.class);
       List<Value> v = ((Vector) ((Pair)arguments).getCar()).getVector();
       int from = 0;
@@ -155,7 +158,7 @@ public class Vectors extends Library {
   }
   public class StringToVector extends BuiltInProcedure {
     public StringToVector(Environment env) { super("string->vector", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, 3, String.class);
       StringBuilder s = ((String) ((Pair)arguments).getCar()).getStringBuilder();
       int from = 0;
@@ -179,7 +182,7 @@ public class Vectors extends Library {
   }
   public class VectorCopyTo extends BuiltInProcedure {
     public VectorCopyTo(Environment env) { super("vector-copy!", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 3, 5, Vector.class, Integer.class, Vector.class, Integer.class, Integer.class);
       List<Value> dst = ((Vector) ((Pair)arguments).getCar()).getVector();
       int at = ((Integer) ((Pair)((Pair)arguments).getCdr()).getCar()).asInt();
@@ -211,7 +214,7 @@ public class Vectors extends Library {
   }
   public class VectorCopy extends BuiltInProcedure {
     public VectorCopy(Environment env) { super("vector-copy", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, 3, Vector.class, Integer.class, Integer.class);
       List<Value> v = ((Vector) ((Pair)arguments).getCar()).getVector();
       int from = 0;
@@ -238,7 +241,7 @@ public class Vectors extends Library {
   }
   public class VectorAppend extends BuiltInProcedure {
     public VectorAppend(Environment env) { super("vector-append", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 0, java.lang.Integer.MAX_VALUE, Vector.class);
       List<Value> result = new ArrayList<Value>();
       while (!arguments.isNull()) {
@@ -251,7 +254,7 @@ public class Vectors extends Library {
   }
   public class VectorFill extends BuiltInProcedure {
     public VectorFill(Environment env) { super("vector-fill!", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, 4, Vector.class, Value.class, Integer.class, Integer.class);
       Vector vector = (Vector) ((Pair)arguments).getCar();
       List<Value> v = vector.getVector();

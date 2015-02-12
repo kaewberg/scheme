@@ -12,13 +12,16 @@ import se.pp.forsberg.scheme.values.Value;
 import se.pp.forsberg.scheme.values.errors.RuntimeError;
 
 public class Symbols extends Library {
+  public Symbols() throws SchemeException {
+    super();
+  }
   public static Value getName() {
     return new Pair(new Identifier("scheme-impl"), new Pair(new Identifier("symbols"), Nil.NIL));
   }
 
   public class IsSymbol extends BuiltInProcedure {
     public IsSymbol(Environment env) { super("symbol?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, Value.class);
       Value v = ((Pair)arguments).getCar();
       return v.isIdentifier()? Boolean.TRUE : Boolean.FALSE;
@@ -26,7 +29,7 @@ public class Symbols extends Library {
   }
   public class SymbolEqual extends BuiltInProcedure {
     public SymbolEqual(Environment env) { super("symbol=?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, Integer.MAX_VALUE, Value.class);
       Value v1 = ((Pair)arguments).getCar();
       if (!v1.isIdentifier()) return Boolean.FALSE;
@@ -43,7 +46,7 @@ public class Symbols extends Library {
   }
   public class SymbolToString extends BuiltInProcedure {
     public SymbolToString(Environment env) { super("symbol->string", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, Identifier.class);
       Identifier id = (Identifier) ((Pair)arguments).getCar();
       return new String(id.getIdentifier());
@@ -51,7 +54,7 @@ public class Symbols extends Library {
   }
   public class StringToSymbol extends BuiltInProcedure {
     public StringToSymbol(Environment env) { super("string->symbol", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, String.class);
       String s = (String) ((Pair)arguments).getCar();
       return new Identifier(s.getString());

@@ -15,13 +15,16 @@ import se.pp.forsberg.scheme.values.numbers.Integer;
 import se.pp.forsberg.scheme.values.numbers.LongInteger;
 
 public class Strings extends Library {
+  public Strings() throws SchemeException {
+    super();
+  }
   public static Value getName() {
     return new Pair(new Identifier("scheme-impl"), new Pair(new Identifier("strings"), Nil.NIL));
   }
 
   public class IsString extends BuiltInProcedure {
     public IsString(Environment env) { super("string?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, Value.class);
       Value v1 = ((Pair)arguments).getCar();
       return v1.isString()? Boolean.TRUE : Boolean.FALSE;
@@ -29,7 +32,7 @@ public class Strings extends Library {
   }
   public class MakeString extends BuiltInProcedure {
     public MakeString(Environment env) { super("make-string", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, 2, Integer.class, Character.class);
       Integer k = (Integer) ((Pair)arguments).getCar();
       Character c = new Character(' ');
@@ -45,7 +48,7 @@ public class Strings extends Library {
   }
   public class _String extends BuiltInProcedure {
     public _String(Environment env) { super("string", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, java.lang.Integer.MAX_VALUE, Character.class);
       StringBuilder result = new StringBuilder();
       while (!arguments.isNull()) {
@@ -59,7 +62,7 @@ public class Strings extends Library {
   }
   public class StringLength extends BuiltInProcedure {
     public StringLength(Environment env) { super("string-length", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, String.class);
       String s = (String) ((Pair)arguments).getCar();
       return new LongInteger(s.getString().length(), true); 
@@ -67,7 +70,7 @@ public class Strings extends Library {
   }
   public class StringRef extends BuiltInProcedure {
     public StringRef(Environment env) { super("string-ref", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, String.class, Integer.class);
       String s = (String) ((Pair)arguments).getCar();
       Integer k = (Integer) ((Pair)((Pair)arguments).getCdr()).getCar();;
@@ -76,7 +79,7 @@ public class Strings extends Library {
   }
   public class StringSet extends BuiltInProcedure {
     public StringSet(Environment env) { super("string-set!", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, String.class, Integer.class, Character.class);
       String s = (String) ((Pair)arguments).getCar();
       Integer k = (Integer) ((Pair)((Pair)arguments).getCdr()).getCar();
@@ -87,7 +90,7 @@ public class Strings extends Library {
   }
   public class StringUpcase extends BuiltInProcedure {
     public StringUpcase(Environment env) { super("string-upcase", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, String.class);
       String s = (String) ((Pair)arguments).getCar();
       return new String(s.getString().toUpperCase());
@@ -95,7 +98,7 @@ public class Strings extends Library {
   }
   public class StringDowncase extends BuiltInProcedure {
     public StringDowncase(Environment env) { super("string-downcase", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, String.class);
       String s = (String) ((Pair)arguments).getCar();
       return new String(s.getString().toLowerCase());
@@ -104,7 +107,7 @@ public class Strings extends Library {
   // TODO real folding
   public class StringFoldcase extends BuiltInProcedure {
     public StringFoldcase(Environment env) { super("string-foldcase", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, String.class);
       String s = (String) ((Pair)arguments).getCar();
       return new String(s.getString().toLowerCase());
@@ -112,7 +115,7 @@ public class Strings extends Library {
   }
   public class Substring extends BuiltInProcedure {
     public Substring(Environment env) { super("substring", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, String.class, Integer.class, Integer.class);
       String s = (String) ((Pair)arguments).getCar();
       Integer from = (Integer) ((Pair)((Pair)arguments).getCdr()).getCar();
@@ -122,7 +125,7 @@ public class Strings extends Library {
   }
   public class StringAppend extends BuiltInProcedure {
     public StringAppend(Environment env) { super("string-append", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 0, java.lang.Integer.MAX_VALUE, String.class);
       StringBuilder result = new StringBuilder();
       while (!arguments.isNull()) {
@@ -134,7 +137,7 @@ public class Strings extends Library {
   }
   public class StringToList extends BuiltInProcedure {
     public StringToList(Environment env) { super("string->list", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, 3, String.class, Integer.class, Integer.class);
       StringBuilder s = ((String) ((Pair)arguments).getCar()).getStringBuilder();
       int from = 0;
@@ -160,7 +163,7 @@ public class Strings extends Library {
   }
   public class ListToString extends BuiltInProcedure {
     public ListToString(Environment env) { super("list->string", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 0, java.lang.Integer.MAX_VALUE, Character.class);
       StringBuilder result = new StringBuilder();
       while (!arguments.isNull()) {
@@ -172,7 +175,7 @@ public class Strings extends Library {
   }
   public class StringCopy extends BuiltInProcedure {
     public StringCopy(Environment env) { super("string-copy", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, 3, String.class, Integer.class, Integer.class);
       StringBuilder s = ((String) ((Pair)arguments).getCar()).getStringBuilder();
       int from = 0;
@@ -192,7 +195,7 @@ public class Strings extends Library {
   }
   public class StringCopyTo extends BuiltInProcedure {
     public StringCopyTo(Environment env) { super("string-copy!", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 3, 5, String.class, Integer.class, String.class, Integer.class, Integer.class);
       StringBuilder dst = ((String) ((Pair)arguments).getCar()).getStringBuilder();
       int at = ((Integer) ((Pair)((Pair)arguments).getCdr()).getCar()).asInt();
@@ -222,7 +225,7 @@ public class Strings extends Library {
   }
   public class StringFill extends BuiltInProcedure {
     public StringFill(Environment env) { super("string-fill!", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, 4, String.class, Character.class, Integer.class, Integer.class);
       StringBuilder s = ((String) ((Pair)arguments).getCar()).getStringBuilder();
       char c = ((Character) ((Pair)((Pair)arguments).getCdr()).getCar()).getCharacter();

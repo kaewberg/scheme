@@ -32,7 +32,7 @@ public class TestParser {
     return new Parser(new StringReader(s));
   }
   @Test
-  public void testComment1() {
+  public void testComment1() throws SchemeException {
     Parser parser = createParser("; a b c\n#t");
     Value value = parser.read();
     assertTrue(value.isBoolean());
@@ -40,7 +40,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testComment2() {
+  public void testComment2() throws SchemeException {
     Parser parser = createParser("#| a b c |##t");
     Value value = parser.read();
     assertTrue(value.isBoolean());
@@ -48,7 +48,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testComment3() {
+  public void testComment3() throws SchemeException {
     Parser parser = createParser("#| a #| b |# c |##t");
     Value value = parser.read();
     assertTrue(value.isBoolean());
@@ -56,7 +56,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testComment4() {
+  public void testComment4() throws SchemeException {
     Parser parser = createParser("#; a #t");
     Value value = parser.read();
     assertTrue(value.isBoolean());
@@ -64,7 +64,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testComment5() {
+  public void testComment5() throws SchemeException {
     Parser parser = createParser("#; (a b (c)) #t");
     Value value = parser.read();
     assertTrue(value.isBoolean());
@@ -72,7 +72,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testBoolean1() {
+  public void testBoolean1() throws SchemeException {
     Parser parser = createParser("#t");
     Value value = parser.read();
     assertTrue(value.isBoolean());
@@ -80,7 +80,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testBoolean2() {
+  public void testBoolean2() throws SchemeException {
     Parser parser = createParser("#true");
     Value value = parser.read();
     assertTrue(value.isBoolean());
@@ -88,7 +88,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testBoolean3() {
+  public void testBoolean3() throws SchemeException {
     Parser parser = createParser("#f");
     Value value = parser.read();
     assertTrue(value.isBoolean());
@@ -96,7 +96,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testBoolean4() {
+  public void testBoolean4() throws SchemeException {
     Parser parser = createParser("#false");
     Value value = parser.read();
     assertTrue(value.isBoolean());
@@ -104,7 +104,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testBoolean5() {
+  public void testBoolean5() throws SchemeException {
     Parser parser = createParser("#T");
     Value value = parser.read();
     assertTrue(value.isBoolean());
@@ -112,7 +112,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testBoolean6() {
+  public void testBoolean6() throws SchemeException {
     Parser parser = createParser("#tRuE");
     Value value = parser.read();
     assertTrue(value.isBoolean());
@@ -120,7 +120,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testNumber1() {
+  public void testNumber1() throws SchemeException {
     Parser parser = createParser("123");
     Value value = parser.read();
     assertTrue(value.isNumber());
@@ -135,7 +135,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testNumber2() {
+  public void testNumber2() throws SchemeException {
     Parser parser = createParser("123.45e67");
     Value value = parser.read();
     assertTrue(value.isNumber());
@@ -149,7 +149,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testNumber2_1() {
+  public void testNumber2_1() throws SchemeException {
     Parser parser = createParser("123.45E67");
     Value value = parser.read();
     assertTrue(value.isNumber());
@@ -163,7 +163,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testNumber3() {
+  public void testNumber3() throws SchemeException {
     Parser parser = createParser("10/3");
     Value value = parser.read();
     assertTrue(value.isNumber());
@@ -177,7 +177,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testNumber4() {
+  public void testNumber4() throws SchemeException {
     Parser parser = createParser("10/3-3/10i");
     Value value = parser.read();
     assertTrue(value.isNumber());
@@ -193,7 +193,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testNumber3_2() {
+  public void testNumber3_2() throws SchemeException {
     Parser parser = createParser("5/12");
     Value value = parser.read();
     assertTrue(value.isNumber());
@@ -207,7 +207,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testNumber4_1() {
+  public void testNumber4_1() throws SchemeException {
     Parser parser = createParser("10/3-3/10I");
     Value value = parser.read();
     assertTrue(value.isNumber());
@@ -223,7 +223,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testNumber5() {
+  public void testNumber5() throws SchemeException {
     Parser parser = createParser("+4i");
     Value value = parser.read();
     assertTrue(value.isNumber());
@@ -239,7 +239,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testNumber6() {
+  public void testNumber6() throws SchemeException {
     Parser parser = createParser("1+4i");
     Value value = parser.read();
     assertTrue(value.isNumber());
@@ -255,7 +255,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testNumber7() {
+  public void testNumber7() throws SchemeException {
     Parser parser = createParser("#b10");
     Value value = parser.read();
     assertTrue(value.isNumber());
@@ -269,7 +269,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testNumber8() {
+  public void testNumber8() throws SchemeException {
     Parser parser = createParser("#o10");
     Value value = parser.read();
     assertTrue(value.isNumber());
@@ -283,7 +283,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testNumber9() {
+  public void testNumber9() throws SchemeException {
     Parser parser = createParser("#d10");
     Value value = parser.read();
     assertTrue(value.isNumber());
@@ -297,7 +297,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testNumber10() {
+  public void testNumber10() throws SchemeException {
     Parser parser = createParser("#x10");
     Value value = parser.read();
     assertTrue(value.isNumber());
@@ -311,7 +311,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testNumber11() {
+  public void testNumber11() throws SchemeException {
     Parser parser = createParser("#i10");
     Value value = parser.read();
     assertTrue(value.isNumber());
@@ -325,7 +325,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testNumber12() {
+  public void testNumber12() throws SchemeException {
     Parser parser = createParser("#e10");
     Value value = parser.read();
     assertTrue(value.isNumber());
@@ -339,7 +339,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testNumberNormalization1() {
+  public void testNumberNormalization1() throws SchemeException {
     Parser parser = createParser("9/3+0i");
     Value value = parser.read();
     assertTrue(value.isNumber());
@@ -354,7 +354,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testCharacter1() {
+  public void testCharacter1() throws SchemeException {
     Parser parser = createParser("#\\s");
     Value value = parser.read();
     assertTrue(value.isChar());
@@ -363,7 +363,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testCharacter2() {
+  public void testCharacter2() throws SchemeException {
     Parser parser = createParser("#\\space");
     Value value = parser.read();
     assertTrue(value.isChar());
@@ -372,7 +372,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testCharacter3() {
+  public void testCharacter3() throws SchemeException {
     Parser parser = createParser("#\\x0e");
     Value value = parser.read();
     assertTrue(value.isChar());
@@ -381,7 +381,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testString1() {
+  public void testString1() throws SchemeException {
     Parser parser = createParser("\"Hello world!\"");
     Value value = parser.read();
     assertTrue(value.isString());
@@ -390,7 +390,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testString2() {
+  public void testString2() throws SchemeException {
     java.lang.String src = "\"a\\\"b\\\\c\\x20;d\\\"e\\  \t  \n  \t  f\ng\rh\"";
     Parser parser = createParser(src);
     Value value = parser.read();
@@ -400,7 +400,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testSymbol1() {
+  public void testSymbol1() throws SchemeException {
     Parser parser = createParser("Hello");
     Value value = parser.read();
     assertTrue(value.isIdentifier());
@@ -409,7 +409,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testSymbol2() {
+  public void testSymbol2() throws SchemeException {
     Parser parser = createParser(".+peculiar");
     Value value = parser.read();
     assertTrue(value.isIdentifier());
@@ -418,7 +418,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testSymbol3() {
+  public void testSymbol3() throws SchemeException {
     Parser parser = createParser("!$%&*/:<=>?^_~0123456789");
     Value value = parser.read();
     assertTrue(value.isIdentifier());
@@ -427,7 +427,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testSymbol4() {
+  public void testSymbol4() throws SchemeException {
     Parser parser = createParser("|Hello World!|");
     Value value = parser.read();
     assertTrue(value.isIdentifier());
@@ -436,7 +436,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testSymbol5() {
+  public void testSymbol5() throws SchemeException {
     Parser parser = createParser("|a\\|b\\x5c;c\\x20;d\re|");
     Value value = parser.read();
     assertTrue(value.isIdentifier());
@@ -445,7 +445,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testSymbol6() {
+  public void testSymbol6() throws SchemeException {
     Parser parser = createParser("#!fold-case\nHello");
     Value value = parser.read();
     assertTrue(value.isIdentifier());
@@ -454,7 +454,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testByteVector1() {
+  public void testByteVector1() throws SchemeException {
     Parser parser = createParser("#u8(#b1 #o2 #d3 #x4)");
     Value value = parser.read();
     assertTrue(value.isByteVector());
@@ -467,7 +467,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testByteVector2() {
+  public void testByteVector2() throws SchemeException {
     Parser parser = createParser("#u8()");
     Value value = parser.read();
     assertTrue(value.isByteVector());
@@ -476,7 +476,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testList1() {
+  public void testList1() throws SchemeException {
     Parser parser = createParser("(1 2 3)");
     Value value = parser.read();
     assertTrue(value.isPair());
@@ -487,7 +487,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testList2() {
+  public void testList2() throws SchemeException {
     Parser parser = createParser("()");
     Value value = parser.read();
     assertFalse(value.isPair());
@@ -495,7 +495,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testList3() {
+  public void testList3() throws SchemeException {
     Parser parser = createParser("(1 2 . 3)");
     Value value = parser.read();
     assertTrue(value.isPair());
@@ -506,7 +506,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testList4() {
+  public void testList4() throws SchemeException {
     Parser parser = createParser("((1 . 2) . (3 . 4))");
     Value value = parser.read();
     assertTrue(value.isPair());
@@ -517,7 +517,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testList5() {
+  public void testList5() throws SchemeException {
     Parser parser = createParser("(1 2 3 . ())");
     Value value = parser.read();
     assertTrue(value.isPair());
@@ -528,7 +528,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testVector1() {
+  public void testVector1() throws SchemeException {
     Parser parser = createParser("#(#b1 #o2 #d3 #x4)");
     Value value = parser.read();
     assertTrue(value.isVector());
@@ -541,7 +541,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testVector2() {
+  public void testVector2() throws SchemeException {
     Parser parser = createParser("#()");
     Value value = parser.read();
     assertTrue(value.isVector());
@@ -550,7 +550,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testAbbreviation() {
+  public void testAbbreviation() throws SchemeException {
     Parser parser = createParser("'`,,@X");
     Value value = parser.read();
     Value expected =
@@ -563,7 +563,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testLabel1() {
+  public void testLabel1() throws SchemeException {
     Parser parser = createParser("(#1=x #1#)");
     Value value = parser.read();
     Value expected =
@@ -576,7 +576,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testLabel2() {
+  public void testLabel2() throws SchemeException {
     Parser parser = createParser("#1=(x . #1#)");
     Value value = parser.read();
     Identifier x = null;
@@ -592,7 +592,7 @@ public class TestParser {
   }
 
   @Test
-  public void testLabel3() {
+  public void testLabel3() throws SchemeException {
     Parser parser = createParser("#(#1=x #1#)");
     Value value = parser.read();
     Value expected = new Vector(Arrays.asList((Value) new Identifier("x"), new Identifier("x")));
@@ -602,7 +602,7 @@ public class TestParser {
     System.out.println(value);
   }
   @Test
-  public void testLabel4() {
+  public void testLabel4() throws SchemeException {
     Parser parser = createParser("#1=#(x #1#)");
     Value value = parser.read();
     Identifier x = null;

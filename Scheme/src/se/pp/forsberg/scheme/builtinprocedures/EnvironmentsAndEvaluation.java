@@ -11,19 +11,22 @@ import se.pp.forsberg.scheme.values.errors.RuntimeError;
 import se.pp.forsberg.scheme.values.numbers.Integer;
 
 public class EnvironmentsAndEvaluation extends Library {
+  public EnvironmentsAndEvaluation() throws SchemeException {
+    super();
+  }
   public static Value getName() {
     return new Pair(new Identifier("scheme-impl"), new Pair(new Identifier("environment"), Nil.NIL));
   }
 
   public class _Environment extends BuiltInProcedure {
     public _Environment(Environment env) { super("environment", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       return Environment.makeEnvironment(arguments);
     }
   }
   public class SchemeReportEnvironment extends BuiltInProcedure {
     public SchemeReportEnvironment(Environment env) { super("scheme-report-environment", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, Integer.class);
       int v = ((Integer) ((Pair)arguments).getCar()).asInt();
       return Environment.schemeReportEnvironment(v);
@@ -31,7 +34,7 @@ public class EnvironmentsAndEvaluation extends Library {
   }
   public class NullEnvironment extends BuiltInProcedure {
     public NullEnvironment(Environment env) { super("null-environment", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, Integer.class);
       int v = ((Integer) ((Pair)arguments).getCar()).asInt();
       return Environment.nullEnvironment(v);
@@ -39,14 +42,14 @@ public class EnvironmentsAndEvaluation extends Library {
   }
   public class InteractiveEnvironment extends BuiltInProcedure {
     public InteractiveEnvironment(Environment env) { super("interaction-environment", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 0);
       return Environment.interactionEnvironment();
     }
   }
   public class Eval extends BuiltInProcedure {
     public Eval(Environment env) { super("eval", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, Value.class);
       Value v1 = ((Pair)arguments).getCar();
       Value v2 = ((Pair)((Pair)arguments).getCdr()).getCar();

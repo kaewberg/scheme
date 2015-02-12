@@ -7,6 +7,7 @@ import se.pp.forsberg.scheme.values.Environment;
 import se.pp.forsberg.scheme.values.Identifier;
 import se.pp.forsberg.scheme.values.Nil;
 import se.pp.forsberg.scheme.values.Pair;
+import se.pp.forsberg.scheme.values.String;
 import se.pp.forsberg.scheme.values.Value;
 import se.pp.forsberg.scheme.values.errors.RuntimeError;
 import se.pp.forsberg.scheme.values.numbers.Integer;
@@ -17,61 +18,64 @@ import se.pp.forsberg.scheme.values.numbers.Real;
 
 public class Numbers extends Library {
 
+  public Numbers() throws SchemeException {
+    super();
+  }
   public static Value getName() {
     return new Pair(new Identifier("scheme-impl"), new Pair(new Identifier("numbers"), Nil.NIL));
   }
   class IsNumber extends BuiltInProcedure {
     public IsNumber(Environment env) { super("number?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1);
       return ((Pair)arguments).getCar().isNumber()? Boolean.TRUE : Boolean.FALSE;
     }
   }
   class IsComplex extends BuiltInProcedure {
     public IsComplex(Environment env) { super("complex?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1);
       return ((Pair)arguments).getCar().isComplex()? Boolean.TRUE : Boolean.FALSE;
     }
   }
   class IsReal extends BuiltInProcedure {
     public IsReal(Environment env) { super("real?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1);
       return ((Pair)arguments).getCar().isReal()? Boolean.TRUE : Boolean.FALSE;
     }
   }
   class IsRational extends BuiltInProcedure {
     public IsRational(Environment env) { super("rational?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1);
       return ((Pair)arguments).getCar().isRational()? Boolean.TRUE : Boolean.FALSE;
     }
   }
   class IsInteger extends BuiltInProcedure {
     public IsInteger(Environment env) { super("integer?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1);
       return ((Pair)arguments).getCar().isInteger()? Boolean.TRUE : Boolean.FALSE;
     }
   }
   class IsExact extends BuiltInProcedure {
     public IsExact(Environment env) { super("exact?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Number.class);
       return ((Number)((Pair)arguments).getCar()).isExact()? Boolean.TRUE : Boolean.FALSE;
     }
   }
   class IsInexact extends BuiltInProcedure {
     public IsInexact(Environment env) { super("inexact?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Number.class);
       return ((Number)((Pair)arguments).getCar()).isExact()? Boolean.FALSE : Boolean.TRUE;
     }
   }
   class IsExactInteger extends BuiltInProcedure {
     public IsExactInteger(Environment env) { super("exact-integer?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Number.class);
       Number number = (Number) ((Pair)arguments).getCar();
       return number.isExact() && number.isInteger()? Boolean.TRUE : Boolean.FALSE;
@@ -79,7 +83,7 @@ public class Numbers extends Library {
   }
   class Equals extends BuiltInProcedure {
     public Equals(Environment env) { super("=", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, java.lang.Integer.MAX_VALUE, Number.class);
       Number last = (Number) ((Pair)arguments).getCar();
       arguments = ((Pair)arguments).getCdr();
@@ -94,7 +98,7 @@ public class Numbers extends Library {
   }
   class LessThan extends BuiltInProcedure {
     public LessThan(Environment env) { super("<", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, java.lang.Integer.MAX_VALUE, Real.class);
       Real last = (Real) ((Pair)arguments).getCar();
       arguments = ((Pair)arguments).getCdr();
@@ -109,7 +113,7 @@ public class Numbers extends Library {
   }
   class GreaterThan extends BuiltInProcedure {
     public GreaterThan(Environment env) { super(">", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, java.lang.Integer.MAX_VALUE, Real.class);
       Real last = (Real) ((Pair)arguments).getCar();
       arguments = ((Pair)arguments).getCdr();
@@ -124,7 +128,7 @@ public class Numbers extends Library {
   }
   class LessThanOrEqual extends BuiltInProcedure {
     public LessThanOrEqual(Environment env) { super("<=", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, java.lang.Integer.MAX_VALUE, Real.class);
       Real last = (Real) ((Pair)arguments).getCar();
       arguments = ((Pair)arguments).getCdr();
@@ -139,7 +143,7 @@ public class Numbers extends Library {
   }
   class GreaterThanOrEqual extends BuiltInProcedure {
     public GreaterThanOrEqual(Environment env) { super(">=", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, java.lang.Integer.MAX_VALUE, Real.class);
       Real last = (Real) ((Pair)arguments).getCar();
       arguments = ((Pair)arguments).getCdr();
@@ -154,28 +158,28 @@ public class Numbers extends Library {
   }
   class IsZero extends BuiltInProcedure {
     public IsZero(Environment env) { super("zero?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Number.class);
       return ((Number) ((Pair)arguments).getCar()).isZero()? Boolean.TRUE : Boolean.FALSE;
     }
   }
   class IsPositive extends BuiltInProcedure {
     public IsPositive(Environment env) { super("positive?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Real.class);
       return ((Real) ((Pair)arguments).getCar()).isPositive()? Boolean.TRUE : Boolean.FALSE;
     }
   }
   class IsNegative extends BuiltInProcedure {
     public IsNegative(Environment env) { super("negative?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Real.class);
       return ((Real) ((Pair)arguments).getCar()).isNegative()? Boolean.TRUE : Boolean.FALSE;
     }
   }
   class IsOdd extends BuiltInProcedure {
     public IsOdd(Environment env) { super("odd?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Integer.class);
       Integer i = (Integer) ((Pair)arguments).getCar();
       return ((Pair) i.floorDivide(new LongInteger(2, i.isExact())).getCdr()).getCar().eqv(new LongInteger(0, i.isExact()))? Boolean.FALSE : Boolean.TRUE;
@@ -183,7 +187,7 @@ public class Numbers extends Library {
   }
   class IsEven extends BuiltInProcedure {
     public IsEven(Environment env) { super("even?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Integer.class);
       Integer i = (Integer) ((Pair)arguments).getCar();
       return ((Pair) i.floorDivide(new LongInteger(2, i.isExact())).getCdr()).getCar().eqv(new LongInteger(0, i.isExact()))? Boolean.TRUE : Boolean.FALSE;
@@ -191,7 +195,7 @@ public class Numbers extends Library {
   }
   class Max extends BuiltInProcedure {
     public Max(Environment env) { super("max", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, java.lang.Integer.MAX_VALUE, Real.class);
       Real result = (Real) ((Pair)arguments).getCar();
       arguments = ((Pair)arguments).getCdr();
@@ -205,7 +209,7 @@ public class Numbers extends Library {
   }
   class Min extends BuiltInProcedure {
     public Min(Environment env) { super("min", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, java.lang.Integer.MAX_VALUE, Real.class);
       Real result = (Real) ((Pair)arguments).getCar();
       arguments = ((Pair)arguments).getCdr();
@@ -220,7 +224,7 @@ public class Numbers extends Library {
 
   class Plus extends BuiltInProcedure {
     public Plus(Environment env) { super("+", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 0, java.lang.Integer.MAX_VALUE, Number.class);
       
       Number result = LongInteger.ZERO;
@@ -233,7 +237,7 @@ public class Numbers extends Library {
   }
   class Minus extends BuiltInProcedure {
     public Minus(Environment env) { super("-", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, java.lang.Integer.MAX_VALUE, Number.class);
       Number result = (Number) ((Pair)arguments).getCar();
       if (((Pair)arguments).getCdr().isNull()) return result.negate();
@@ -247,7 +251,7 @@ public class Numbers extends Library {
   }
   class Times extends BuiltInProcedure {
     public Times(Environment env) { super("*", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 0, java.lang.Integer.MAX_VALUE, Number.class);
       Number result = LongInteger.ONE;
       while (!arguments.isNull()) {
@@ -259,7 +263,7 @@ public class Numbers extends Library {
   }
   class Divide extends BuiltInProcedure {
     public Divide(Environment env) { super("/", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, java.lang.Integer.MAX_VALUE, Number.class);
       Number result = (Number) ((Pair)arguments).getCar();
       if (((Pair)arguments).getCdr().isNull()) return result.invert();
@@ -273,77 +277,77 @@ public class Numbers extends Library {
   }
   class Abs extends BuiltInProcedure {
     public Abs(Environment env) { super("abs", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Number.class);
       return ((Number)((Pair)arguments).getCar()).abs();
     }
   }
   class FloorDivide extends BuiltInProcedure {
     public FloorDivide(Environment env) { super("floor/", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, Integer.class);
       return ((Integer)((Pair)arguments).getCar()).floorDivide((Integer)((Pair)((Pair)arguments).getCdr()).getCar());
     }
   }
   class FloorQuotient extends BuiltInProcedure {
     public FloorQuotient(Environment env) { super("floor-quotient", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, Integer.class);
       return ((Integer)((Pair)arguments).getCar()).floorDivide((Integer)((Pair)((Pair)arguments).getCdr()).getCar()).getCar();
     }
   }
   class FloorReminder extends BuiltInProcedure {
     public FloorReminder(Environment env) { super("floor-remainder", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, Integer.class);
       return ((Integer)((Pair)arguments).getCar()).floorDivide((Integer)((Pair)((Pair)arguments).getCdr()).getCar()).getCdr();
     }
   }
   class TruncateDivide extends BuiltInProcedure {
     public TruncateDivide(Environment env) { super("truncate/", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, Integer.class);
       return ((Integer)((Pair)arguments).getCar()).truncateDivide((Integer)((Pair)((Pair)arguments).getCdr()).getCar());
     }
   }
   class TruncateQuotient extends BuiltInProcedure {
     public TruncateQuotient(Environment env) { super("truncate-quotient", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, Integer.class);
       return ((Integer)((Pair)arguments).getCar()).truncateDivide((Integer)((Pair)((Pair)arguments).getCdr()).getCar()).getCar();
     }
   }
   class TruncateReminder extends BuiltInProcedure {
     public TruncateReminder(Environment env) { super("truncate-remainder", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, Integer.class);
       return ((Integer)((Pair)arguments).getCar()).truncateDivide((Integer)((Pair)((Pair)arguments).getCdr()).getCar()).getCdr();
     }
   }
   class Quotient extends BuiltInProcedure {
     public Quotient(Environment env) { super("quotient", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, Integer.class);
       return ((Integer)((Pair)arguments).getCar()).truncateDivide((Integer)((Pair)((Pair)arguments).getCdr()).getCar()).getCar();
     }
   }
   class Reminder extends BuiltInProcedure {
     public Reminder(Environment env) { super("remainder", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, Integer.class);
       return ((Integer)((Pair)arguments).getCar()).truncateDivide((Integer)((Pair)((Pair)arguments).getCdr()).getCar()).getCdr();
     }
   }
   class Modulo extends BuiltInProcedure {
     public Modulo(Environment env) { super("modulo", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, Integer.class);
       return ((Integer)((Pair)arguments).getCar()).floorDivide((Integer)((Pair)((Pair)arguments).getCdr()).getCar()).getCdr();
     }
   }
   class Gcd extends BuiltInProcedure {
     public Gcd(Environment env) { super("gcd", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 0, java.lang.Integer.MAX_VALUE, Integer.class);
       if (arguments.isNull()) { return LongInteger.ZERO; }
       Integer result = (Integer) ((Pair)arguments).getCar();
@@ -358,7 +362,7 @@ public class Numbers extends Library {
   }
   class Lcm extends BuiltInProcedure {
     public Lcm(Environment env) { super("lcm", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 0, java.lang.Integer.MAX_VALUE, Integer.class);
       if (arguments.isNull()) { return LongInteger.ONE; }
       Integer result = (Integer) ((Pair)arguments).getCar();
@@ -373,56 +377,56 @@ public class Numbers extends Library {
   }
   class Numerator extends BuiltInProcedure {
     public Numerator(Environment env) { super("numerator", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Rational.class);
       return ((Rational) ((Pair)arguments).getCar()).getNumerator();
     }
   }
   class Denominator extends BuiltInProcedure {
     public Denominator(Environment env) { super("denominator", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Rational.class);
       return ((Rational) ((Pair)arguments).getCar()).getDenominator();
     }
   }
   class Floor extends BuiltInProcedure {
     public Floor(Environment env) { super("floor", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Real.class);
       return ((Real) ((Pair)arguments).getCar()).floor();
     }
   }
   class Ceiling extends BuiltInProcedure {
     public Ceiling(Environment env) { super("ceiling", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       if (arguments.isNull() || !((Pair)arguments).getCdr().isNull() || !((Pair)arguments).getCar().isReal()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Illegal arguments to " + getName() + ", expected single real")));
       return ((Real) ((Pair)arguments).getCar()).ceiling();
     }
   }
   class Truncate extends BuiltInProcedure {
     public Truncate(Environment env) { super("truncate", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Real.class);
       return ((Real) ((Pair)arguments).getCar()).truncate();
     }
   }
   class Round extends BuiltInProcedure {
     public Round(Environment env) { super("round", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Real.class);
       return ((Real) ((Pair)arguments).getCar()).round();
     }
   }
   class Rationalize extends BuiltInProcedure {
     public Rationalize(Environment env) { super("rationalize", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, Real.class);
       return ((Real) ((Pair)arguments).getCar()).rationalize((Real) ((Pair)((Pair)arguments).getCdr()).getCar());
     }
   }
   class Square extends BuiltInProcedure {
     public Square(Environment env) { super("square", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Number.class);
       Number z = (Number)((Pair)arguments).getCar();
       return z.times(z);
@@ -430,14 +434,14 @@ public class Numbers extends Library {
   }
   class ExactIntegerSqrt extends BuiltInProcedure {
     public ExactIntegerSqrt(Environment env) { super("exact-integer-sqrt", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Integer.class);
       return ((Integer)((Pair)arguments).getCar()).exactSqrt();
     }
   }
   class Expt extends BuiltInProcedure {
     public Expt(Environment env) { super("expt", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, Number.class);
       Number z1 = (Number) ((Pair)arguments).getCar();
       Number z2 = (Number) ((Pair) ((Pair)arguments).getCdr()).getCar();
@@ -446,7 +450,7 @@ public class Numbers extends Library {
   }
   class Exact extends BuiltInProcedure {
     public Exact(Environment env) { super("exact", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, Number.class);
       Number z = (Number) ((Pair)arguments).getCar();
       return z.toExact();
@@ -454,10 +458,27 @@ public class Numbers extends Library {
   }
   class Inexact extends BuiltInProcedure {
     public Inexact(Environment env) { super("inexact", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, Number.class);
       Number z = (Number) ((Pair)arguments).getCar();
       return z.toInexact();
     }
   }
+  class NumberToString extends BuiltInProcedure {
+    public NumberToString(Environment env) { super("number->string", env); }
+    @Override public Value apply(Value arguments) throws SchemeException {
+      checkArguments(this, arguments, 1, Number.class);
+      Number z = (Number) ((Pair)arguments).getCar();
+      return new String(z.toString());
+    }
+  }
+  class StringToNumber extends BuiltInProcedure {
+    public StringToNumber(Environment env) { super("string->number", env); }
+    @Override public Value apply(Value arguments) throws SchemeException {
+      checkArguments(this, arguments, 1, String.class);
+      String s = (String) ((Pair)arguments).getCar();
+      return Number.parse(s.getString());
+    }
+  }
+  
 }

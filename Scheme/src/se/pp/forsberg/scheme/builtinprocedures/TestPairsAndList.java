@@ -1,6 +1,7 @@
 package se.pp.forsberg.scheme.builtinprocedures;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.StringReader;
 
@@ -8,27 +9,31 @@ import org.junit.Test;
 
 import se.pp.forsberg.scheme.Parser;
 import se.pp.forsberg.scheme.Scheme;
+import se.pp.forsberg.scheme.SchemeException;
 import se.pp.forsberg.scheme.values.Boolean;
 import se.pp.forsberg.scheme.values.Environment;
 import se.pp.forsberg.scheme.values.Value;
 
 public class TestPairsAndList {
-  private static Environment env = Environment.schemeReportEnvironment(7);
+  public TestPairsAndList() throws SchemeException {
+    
+  }
+  private Environment env = Environment.schemeReportEnvironment(7);
 
   protected Parser createParser(java.lang.String s) {
     return new Parser(new StringReader(s));
   }
-  protected Value eval(Value value) {
+  protected Value eval(Value value) throws SchemeException {
     return Scheme.eval(value, env);
     //return value.eval(env);
   }
-  protected Value eval(java.lang.String source) {
+  protected Value eval(java.lang.String source) throws SchemeException {
     return eval(createParser(source).read());
   }
   
 
   @Test
-  public void testIsPair() {
+  public void testIsPair() throws SchemeException {
     assertEquals(Boolean.FALSE, eval("(pair? 'hello)"));
     assertEquals(Boolean.FALSE, eval("(pair? '())"));
     assertEquals(Boolean.FALSE, eval("(pair? #(1 2 3))"));
@@ -36,11 +41,11 @@ public class TestPairsAndList {
     assertEquals(Boolean.TRUE, eval("(pair? '(1 . 2))"));
   }
   @Test
-  public void testCons() {
+  public void testCons() throws SchemeException {
     assertEquals(eval("'(1 2 3)"), eval("(cons 1 (cons 2 (cons 3 '())))"));
   }
   @Test
-  public void testPair() {
+  public void testPair() throws SchemeException {
     assertEquals(eval("1"), eval("(car '(1))"));
     assertEquals(eval("'()"), eval("(cdr '(1))"));
     assertEquals(eval("'()"), eval("(car '(()))"));
@@ -76,7 +81,7 @@ public class TestPairsAndList {
     assertEquals(eval("16"), eval("(cddddr '((((1 . 2) . (3 . 4)) . ((5 . 6) . (7 . 8))) . (((9 . 10) . (11 . 12)) . ((13 . 14) . (15 . 16)))))"));
   }
   @Test
-  public void testIsNull() {
+  public void testIsNull() throws SchemeException {
     assertEquals(Boolean.FALSE, eval("(null? 'hello)"));
     assertEquals(Boolean.TRUE, eval("(null? '())"));
     assertEquals(Boolean.FALSE, eval("(null? #(1 2 3))"));
@@ -84,7 +89,7 @@ public class TestPairsAndList {
     assertEquals(Boolean.FALSE, eval("(null? '(1 . 2))"));
   }
   @Test
-  public void testIsList() {
+  public void testIsList() throws SchemeException {
     assertEquals(Boolean.FALSE, eval("(list? 'hello)"));
     assertEquals(Boolean.TRUE, eval("(list? '())"));
     assertEquals(Boolean.FALSE, eval("(list? #(1 2 3))"));
@@ -92,17 +97,17 @@ public class TestPairsAndList {
     assertEquals(Boolean.FALSE, eval("(list? '(1 2 . 3))"));
   }
   @Test
-  public void testMakeList() {
+  public void testMakeList() throws SchemeException {
     assertEquals(eval("'()"), eval("(make-list 0)"));
     assertEquals(eval("'(2 2 2)"), eval("(make-list 3 2)"));
   }
   @Test
-  public void testList() {
+  public void testList() throws SchemeException {
     assertEquals(eval("'()"), eval("(list)"));
     assertEquals(eval("'(1 2 3)"), eval("(list 1 2 3)"));
   }
   @Test
-  public void testAppend() {
+  public void testAppend() throws SchemeException {
     assertEquals(eval("'(1 2 3)"), eval("(append '(1 2 3))"));
     assertEquals(eval("'()"), eval("(append '())"));
     assertEquals(eval("'(1 2 3)"), eval("(append '() '(1 2 3))"));
@@ -110,25 +115,25 @@ public class TestPairsAndList {
     assertEquals(eval("'(1 2 3 4 . 5)"), eval("(append '(1 2 3) '(4 . 5))"));
   }
   @Test
-  public void testReverse() {
+  public void testReverse() throws SchemeException {
     assertEquals(eval("'()"), eval("(reverse '())"));
     assertEquals(eval("'(1 2 3)"), eval("(reverse '(3 2 1))"));
   }
   @Test
-  public void testlistTail() {
+  public void testlistTail() throws SchemeException {
     assertEquals(eval("'(1 2 3)"), eval("(list-tail '(1 2 3) 0)"));
     assertEquals(eval("'(2 3)"), eval("(list-tail '(1 2 3) 1)"));
     assertEquals(eval("'(3)"), eval("(list-tail '(1 2 3) 2)"));
     assertEquals(eval("'()"), eval("(list-tail '(1 2 3) 3)"));
   }
   @Test
-  public void testlistRef() {
+  public void testlistRef() throws SchemeException {
     assertEquals(eval("1"), eval("(list-ref '(1 2 3) 0)"));
     assertEquals(eval("2"), eval("(list-ref '(1 2 3) 1)"));
     assertEquals(eval("3"), eval("(list-ref '(1 2 3) 2)"));
   }
   @Test
-  public void testMember() {
+  public void testMember() throws SchemeException {
     assertEquals(eval("'(a b c)"), eval("(memq 'a '(a b c))"));
     assertEquals(eval("'(b c)"), eval("(memq 'b '(a b c))"));
     assertEquals(eval("#f"), eval("(memq 'd '(a b c))"));
@@ -137,7 +142,7 @@ public class TestPairsAndList {
     assertEquals(eval("'(3 4 5)"), eval("(member 1 '(1 2 3 4 5) (lambda (y x) (= x (- y 2))))"));
   }
   @Test
-  public void testlistSet() {
+  public void testlistSet() throws SchemeException {
     assertEquals(eval("'(one two three)"), eval("(let ((ls (list 'one 'two 'five!)))(list-set! ls 2 'three)ls)"));
     Exception ex = null;
     try {
@@ -148,7 +153,7 @@ public class TestPairsAndList {
     assertNotNull(ex);
   }
   @Test
-  public void testAssoc() {
+  public void testAssoc() throws SchemeException {
     assertEquals(eval("'(a 1)"), eval("(assq 'a '((a 1) (b 2) (c 3)))"));
     assertEquals(eval("'(b 2)"), eval("(assq 'b '((a 1) (b 2) (c 3)))"));
     assertEquals(eval("#f"), eval("(assq 'd '((a 1) (b 2) (c 3)))"));
@@ -157,7 +162,7 @@ public class TestPairsAndList {
     assertEquals(eval("'(3 c)"), eval("(assoc 1 '((1 a) (2 b) (3 c) (4 d) (5 e)) (lambda (y x) (= x (- y 2))))"));
   }
   @Test
-  public void testListCopy() {
+  public void testListCopy() throws SchemeException {
     eval("(define a '(1 8 2 8)) ; a may be immutable");
     eval("(define b (list-copy a))");
     eval("(set-car! b 3) ; b is mutable");

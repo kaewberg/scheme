@@ -3,5 +3,5 @@
   (export case-lambda)
   (begin
     ; There's got to be a way to write this with define-syntax...
-    (define case-lambda (error "TODO" 'case-lambda))
+    (define (case-lambda . x) (error "TODO" 'case-lambda))
 ))

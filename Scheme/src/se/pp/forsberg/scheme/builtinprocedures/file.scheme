@@ -2,7 +2,7 @@
   (import (scheme-impl ports))
   (import (scheme-impl input))
   (import (scheme-impl output))
-  (import (scheme-impl system-interface))
+  (import (scheme-impl system))
   (export call-with-input-file call-with-output-file delete-file file-exists?
           open-binary-input-file open-binary-output-file open-input-file open-output-file
           with-input-from-file with-output-to-file)

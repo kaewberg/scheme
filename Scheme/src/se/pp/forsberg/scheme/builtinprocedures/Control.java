@@ -12,16 +12,19 @@ import se.pp.forsberg.scheme.values.Nil;
 import se.pp.forsberg.scheme.values.Pair;
 import se.pp.forsberg.scheme.values.Procedure;
 import se.pp.forsberg.scheme.values.Value;
-import se.pp.forsberg.scheme.values.errors.RuntimeError;
 
 public class Control extends Library {
+  public Control() throws SchemeException {
+    super();
+  }
+
   public static Value getName() {
     return new Pair(new Identifier("scheme-impl"), new Pair(new Identifier("control"), Nil.NIL));
   }
 
   public class IsProcedure extends BuiltInProcedure {
     public IsProcedure(Environment env) { super("procedure?", env); }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, Value.class);
       Value v1 = ((Pair)arguments).getCar();
       return v1.isProcedure()? Boolean.TRUE : Boolean.FALSE;
@@ -31,14 +34,18 @@ public class Control extends Library {
     public Apply(Environment env) { super("apply", env); }
     @Override
     public Op apply(Op op, Environment env, Value arguments) {
-      checkArguments(this, arguments, Procedure.class, Value.class);
+      try {
+        checkArguments(this, arguments, Procedure.class, Value.class);
+      } catch (SchemeException x) {
+        return op.getEvaluator().error(x.getError());
+      }
       Value v = ((Pair)arguments).getCar();
       Procedure proc = (Procedure) v;
       Value args = ((Pair)((Pair)arguments).getCdr()).getCar();
       op.getEvaluator().setValue(new Pair(proc, args));
       return op;
     }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Procedure.class, Value.class);
       Value v = ((Pair)arguments).getCar();
       Procedure proc = (Procedure) v;
@@ -72,7 +79,7 @@ public class Control extends Library {
       
       return new Pair(((Pair)pair.getCar()).getCdr(), listCdr(pair.getCdr()));
     }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, java.lang.Integer.MAX_VALUE);
       Value v = ((Pair)arguments).getCar();
       if (!v.isProcedure()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Expected procedure in " + getName())));
@@ -112,7 +119,7 @@ public class Control extends Library {
       if (i >= v.length()) return Nil.NIL;
       return new Character(v.charAt(i));
     }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, java.lang.Integer.MAX_VALUE);
       Value v = ((Pair)arguments).getCar();
       if (!v.isProcedure()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Expected procedure in " + getName())));
@@ -145,7 +152,7 @@ public class Control extends Library {
       if (i >= v.size()) return Nil.NIL;
       return v.get(i);
     }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, java.lang.Integer.MAX_VALUE);
       Value v = ((Pair)arguments).getCar();
       if (!v.isProcedure()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Expected procedure in " + getName())));
@@ -186,7 +193,7 @@ public class Control extends Library {
       
       return new Pair(((Pair)pair.getCar()).getCdr(), listCdr(pair.getCdr()));
     }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, java.lang.Integer.MAX_VALUE);
       Value v = ((Pair)arguments).getCar();
       if (!v.isProcedure()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Expected procedure in " + getName())));
@@ -218,7 +225,7 @@ public class Control extends Library {
       if (i >= v.length()) return Nil.NIL;
       return new Character(v.charAt(i));
     }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, java.lang.Integer.MAX_VALUE);
       Value v = ((Pair)arguments).getCar();
       if (!v.isProcedure()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Expected procedure in " + getName())));
@@ -248,7 +255,7 @@ public class Control extends Library {
       if (i >= v.size()) return Nil.NIL;
       return v.get(i);
     }
-    @Override public Value apply(Value arguments) {
+    @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, java.lang.Integer.MAX_VALUE);
       Value v = ((Pair)arguments).getCar();
       if (!v.isProcedure()) throw new SchemeException(new RuntimeError(new IllegalArgumentException("Expected procedure in " + getName())));
@@ -269,8 +276,8 @@ public class Control extends Library {
     }
 
     @Override
-    public Value apply(Value arguments) {
-      throw new SchemeException(new RuntimeError(new IllegalArgumentException("call/cc not supported in recursive eval")));
+    public Value apply(Value arguments) throws SchemeException {
+      throw new SchemeException("call/cc not supported in recursive eval");
     }
     @Override
     public Op apply(Op op, Environment env, Value arguments) {
@@ -289,8 +296,8 @@ public class Control extends Library {
       super("call/cc", env);
     }
     @Override
-    public Value apply(Value arguments) {
-      throw new SchemeException(new RuntimeError(new IllegalArgumentException("call/cc not supported in recursive eval")));
+    public Value apply(Value arguments) throws SchemeException {
+      throw new SchemeException("call/cc not supported in recursive eval");
     }
     @Override
     public Op apply(Op op, Environment env, Value arguments) {
@@ -322,7 +329,7 @@ public class Control extends Library {
 
     @Override
     // Solution was to add linked list of DynamicWind objects in env
-    public Value apply(Value arguments) {
+    public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, Procedure.class, Procedure.class, Procedure.class);
       Procedure before = (Procedure) ((Pair) arguments).getCar();
       Procedure thunk = (Procedure) ((Pair)((Pair) arguments).getCdr()).getCar();
@@ -334,7 +341,11 @@ public class Control extends Library {
     }
     @Override
     public Op apply(Op op, Environment env, Value arguments) {
-      checkArguments(this, arguments, Procedure.class, Procedure.class, Procedure.class);
+      try {
+        checkArguments(this, arguments, Procedure.class, Procedure.class, Procedure.class);
+      } catch (SchemeException e) {
+        return op.getEvaluator().error(e.getError());
+      }
       Procedure before = (Procedure) ((Pair) arguments).getCar();
       Procedure thunk = (Procedure) ((Pair)((Pair) arguments).getCdr()).getCar();
       Procedure after = (Procedure) ((Pair)((Pair)((Pair) arguments).getCdr()).getCdr()).getCar();
