@@ -150,7 +150,7 @@ import se.pp.forsberg.scheme.values.errors.Error;
  */
 
 public class Evaluator {
-  private static boolean DEBUG = false;
+  private static boolean DEBUG = true;
   
   Value value = null;
   
@@ -169,7 +169,7 @@ public class Evaluator {
         System.out.println("-----------------------------------------------------");
         System.out.println(stack);
         System.out.println("value = " + value);
-        if (stack.env != null) System.out.println("env = " + stack.env.vals());
+        if (stack.env != null) System.out.println("env = " + stack.env);
       }
       stack = stack.apply(value);
     }

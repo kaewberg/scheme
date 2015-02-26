@@ -16,6 +16,8 @@ public class Character extends Value {
     charToName.put('\177', "delete");
     nameToChar.put("escape", '\033');
     charToName.put('\033', "escape");
+    nameToChar.put("return", '\r');
+    charToName.put('\r', "return");
     nameToChar.put("newline", '\n');
     charToName.put('\n', "newline");
     nameToChar.put("null", '\0');

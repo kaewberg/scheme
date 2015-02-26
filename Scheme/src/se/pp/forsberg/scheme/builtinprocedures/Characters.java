@@ -121,5 +121,53 @@ public class Characters extends Library {
       return new Character(java.lang.Character.toLowerCase(c.getCharacter()));
     }
   }
+  public class CharEqual extends BuiltInProcedure {
+    public CharEqual(Environment env) { super("char=?", env); }
+    @Override public Value apply(Value arguments) throws SchemeException {
+      checkArguments(this, arguments, 0, java.lang.Integer.MAX_VALUE, Character.class);
+      if (arguments.isNull()) return Boolean.TRUE;
+      Character last = (Character) ((Pair)arguments).getCar();
+      arguments = ((Pair) arguments).getCdr();
+      while (!arguments.isNull()) {
+        Character c = (Character) ((Pair)arguments).getCar();
+        if (!last.equal(c)) return Boolean.FALSE;
+        last = c;
+        arguments = ((Pair) arguments).getCdr();
+      }
+      return Boolean.TRUE;
+    }
+  }
+  public class CharLessThan extends BuiltInProcedure {
+    public CharLessThan(Environment env) { super("char<?", env); }
+    @Override public Value apply(Value arguments) throws SchemeException {
+      checkArguments(this, arguments, 0, java.lang.Integer.MAX_VALUE, Character.class);
+      if (arguments.isNull()) return Boolean.TRUE;
+      Character last = (Character) ((Pair)arguments).getCar();
+      arguments = ((Pair) arguments).getCdr();
+      while (!arguments.isNull()) {
+        Character c = (Character) ((Pair)arguments).getCar();
+        if (last.getCharacter() >= c.getCharacter()) return Boolean.FALSE;
+        last = c;
+        arguments = ((Pair) arguments).getCdr();
+      }
+      return Boolean.TRUE;
+    }
+  }
+  public class CharLessThanOrEqual extends BuiltInProcedure {
+    public CharLessThanOrEqual(Environment env) { super("char<=?", env); }
+    @Override public Value apply(Value arguments) throws SchemeException {
+      checkArguments(this, arguments, 0, java.lang.Integer.MAX_VALUE, Character.class);
+      if (arguments.isNull()) return Boolean.TRUE;
+      Character last = (Character) ((Pair)arguments).getCar();
+      arguments = ((Pair) arguments).getCdr();
+      while (!arguments.isNull()) {
+        Character c = (Character) ((Pair)arguments).getCar();
+        if (last.getCharacter() > c.getCharacter()) return Boolean.FALSE;
+        last = c;
+        arguments = ((Pair) arguments).getCdr();
+      }
+      return Boolean.TRUE;
+    }
+  }
 
 }

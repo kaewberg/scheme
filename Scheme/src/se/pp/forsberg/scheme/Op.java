@@ -119,13 +119,14 @@ public abstract class Op {
       v = p.getCar();
       if (v.isIdentifier()) {
         Identifier id = (Identifier) v;
-        if (id.getIdentifier().equals("quote")) {
-          Value cdr = p.getCdr();
-          if (!cdr.isPair()) return error("Malformed quote", cdr);
-          setValue(((Pair)cdr).getCar());
-          return parent;
-        }
+//        if (id.getIdentifier().equals("quote")) {
+//          Value cdr = p.getCdr();
+//          if (!cdr.isPair()) return error("Malformed quote", cdr);
+//          setValue(((Pair)cdr).getCar());
+//          return parent;
+//        }
         v = env.lookup(id);
+        //int i = 1;
         if (v == null) {
           return evaluator.error("Undefined identifier", id);
         }

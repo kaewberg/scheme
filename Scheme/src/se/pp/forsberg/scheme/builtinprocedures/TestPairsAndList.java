@@ -133,15 +133,6 @@ public class TestPairsAndList {
     assertEquals(eval("3"), eval("(list-ref '(1 2 3) 2)"));
   }
   @Test
-  public void testMember() throws SchemeException {
-    assertEquals(eval("'(a b c)"), eval("(memq 'a '(a b c))"));
-    assertEquals(eval("'(b c)"), eval("(memq 'b '(a b c))"));
-    assertEquals(eval("#f"), eval("(memq 'd '(a b c))"));
-    assertEquals(eval("#f"), eval("(memq '(a) '(b (a) c))"));
-    assertEquals(eval("'((a) c)"), eval("(member '(a) '(b (a) c))"));
-    assertEquals(eval("'(3 4 5)"), eval("(member 1 '(1 2 3 4 5) (lambda (y x) (= x (- y 2))))"));
-  }
-  @Test
   public void testlistSet() throws SchemeException {
     assertEquals(eval("'(one two three)"), eval("(let ((ls (list 'one 'two 'five!)))(list-set! ls 2 'three)ls)"));
     Exception ex = null;
@@ -151,6 +142,15 @@ public class TestPairsAndList {
       ex = x;
     }
     assertNotNull(ex);
+  }
+  @Test
+  public void testMember() throws SchemeException {
+    assertEquals(eval("'(a b c)"), eval("(memq 'a '(a b c))"));
+    assertEquals(eval("'(b c)"), eval("(memq 'b '(a b c))"));
+    assertEquals(eval("#f"), eval("(memq 'd '(a b c))"));
+    assertEquals(eval("#f"), eval("(memq '(a) '(b (a) c))"));
+    assertEquals(eval("'((a) c)"), eval("(member '(a) '(b (a) c))"));
+    assertEquals(eval("'(3 4 5)"), eval("(member 1 '(1 2 3 4 5) (lambda (y x) (= x (- y 2))))"));
   }
   @Test
   public void testAssoc() throws SchemeException {

@@ -410,6 +410,7 @@ public class BasicKeywords extends Library {
       addRule(new Rule(pattern, new SimpleAction() {
         @Override public Value match(Environment env, Value pattern, Value expression, Bindings bindings) throws SchemeException {
           Value xv = bindings.get(x);
+          xv.makeImmutable();
           return xv;
         }
       }));

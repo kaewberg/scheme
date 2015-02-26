@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.Reader;
-import java.rmi.activation.ActivationGroupDesc.CommandEnvironment;
 
 import se.pp.forsberg.scheme.values.Environment;
 import se.pp.forsberg.scheme.values.Port;

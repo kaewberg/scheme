@@ -15,7 +15,6 @@ import se.pp.forsberg.scheme.values.Nil;
 import se.pp.forsberg.scheme.values.Pair;
 import se.pp.forsberg.scheme.values.Value;
 import se.pp.forsberg.scheme.values.Vector;
-import se.pp.forsberg.scheme.values.errors.RuntimeError;
 
 /**
  * A syntactic keyword that can follow different patters.

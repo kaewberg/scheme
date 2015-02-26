@@ -27,8 +27,20 @@ public class Pair extends Value {
   }
   public Value getCar() { return car; }
   public Value getCdr() { return cdr; }
-  public void setCar(Value car) { this.car = car; }
-  public void setCdr(Value cdr) { this.cdr = cdr; }
+  public void setCar(Value car) throws SchemeException {
+    if (!isMutable()) throw new SchemeException("Pair is immutable", this);
+    this.car = car;
+  }
+  public void setCdr(Value cdr) throws SchemeException {
+    if (!isMutable()) throw new SchemeException("Pair is immutable", this);
+    this.cdr = cdr; 
+  }
+  @Override
+  public void makeImmutable() {
+    setImmutable();
+    car.makeImmutable();
+    cdr.makeImmutable();
+  }
   
   // First attempt at handling continuations
   // I use the java call stack as the scheme call stack (by recursively

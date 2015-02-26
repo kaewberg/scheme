@@ -82,6 +82,7 @@ public class Strings extends Library {
     @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, String.class, Integer.class, Character.class);
       String s = (String) ((Pair)arguments).getCar();
+      if (!s.isMutable()) throw new SchemeException("Immutable string", s);
       Integer k = (Integer) ((Pair)((Pair)arguments).getCdr()).getCar();
       Character c = (Character) ((Pair)((Pair)((Pair)arguments).getCdr()).getCdr()).getCar();
       s.getStringBuilder().setCharAt(k.asInt(), c.getCharacter());
@@ -197,7 +198,9 @@ public class Strings extends Library {
     public StringCopyTo(Environment env) { super("string-copy!", env); }
     @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 3, 5, String.class, Integer.class, String.class, Integer.class, Integer.class);
-      StringBuilder dst = ((String) ((Pair)arguments).getCar()).getStringBuilder();
+      String s = (String) ((Pair)arguments).getCar();
+      if (!s.isMutable()) throw new SchemeException("Immutable string", s);
+      StringBuilder dst = s.getStringBuilder();
       int at = ((Integer) ((Pair)((Pair)arguments).getCdr()).getCar()).asInt();
       StringBuilder src = ((String) ((Pair)((Pair)((Pair)arguments).getCdr()).getCdr()).getCar()).getStringBuilder();
       int from = 0;
@@ -227,25 +230,74 @@ public class Strings extends Library {
     public StringFill(Environment env) { super("string-fill!", env); }
     @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 2, 4, String.class, Character.class, Integer.class, Integer.class);
-      StringBuilder s = ((String) ((Pair)arguments).getCar()).getStringBuilder();
+      String s = (String) ((Pair)arguments).getCar();
+      if (!s.isMutable()) throw new SchemeException("Immutable string", s);
+      StringBuilder sb = s.getStringBuilder();
       char c = ((Character) ((Pair)((Pair)arguments).getCdr()).getCar()).getCharacter();
       int from = 0;
-      int to = s.length();
+      int to = sb.length();
       if (((Pair)((Pair)arguments).getCdr()).getCdr().isPair()) {
         from = ((Integer) ((Pair)((Pair)((Pair)arguments).getCdr()).getCdr()).getCar()).asInt();
         if (((Pair)((Pair)((Pair)arguments).getCdr()).getCdr()).getCdr().isPair()) {
           to = ((Integer) ((Pair)((Pair)((Pair)((Pair)arguments).getCdr()).getCdr()).getCdr()).getCar()).asInt() + 1;
         }
       }
-      if (from < 0 || from >= s.length() ||
-          to < from || to >= s.length()) {
+      if (from < 0 || from >= sb.length() ||
+          to < from || to >= sb.length()) {
         throw new SchemeException(new RuntimeError(new StringIndexOutOfBoundsException("String index out of bounds " + s + " " + from + " " + to)));
       }
       for (int i = from; i < to; i++) {
-        s.setCharAt(i, c);
+        sb.setCharAt(i, c);
       }
       return Value.UNSPECIFIED;
     }
   }
-
+  public class StringEqual extends BuiltInProcedure {
+    public StringEqual(Environment env) { super("string=?", env); }
+    @Override public Value apply(Value arguments) throws SchemeException {
+      checkArguments(this, arguments, 0, java.lang.Integer.MAX_VALUE, String.class);
+      if (arguments.isNull()) return Boolean.TRUE;
+      String last = (String) ((Pair)arguments).getCar();
+      arguments = ((Pair) arguments).getCdr();
+      while (!arguments.isNull()) {
+        String s = (String) ((Pair)arguments).getCar();
+        if (!last.equal(s)) return Boolean.FALSE;
+        last = s;
+        arguments = ((Pair) arguments).getCdr();
+      }
+      return Boolean.TRUE;
+    }
+  }
+  public class StringLessThan extends BuiltInProcedure {
+    public StringLessThan(Environment env) { super("string<?", env); }
+    @Override public Value apply(Value arguments) throws SchemeException {
+      checkArguments(this, arguments, 0, java.lang.Integer.MAX_VALUE, String.class);
+      if (arguments.isNull()) return Boolean.TRUE;
+      String last = (String) ((Pair)arguments).getCar();
+      arguments = ((Pair) arguments).getCdr();
+      while (!arguments.isNull()) {
+        String s = (String) ((Pair)arguments).getCar();
+        if (last.getString().compareTo(s.getString()) >= 0) return Boolean.FALSE;
+        last = s;
+        arguments = ((Pair) arguments).getCdr();
+      }
+      return Boolean.TRUE;
+    }
+  }
+  public class StringLessThanOrEqual extends BuiltInProcedure {
+    public StringLessThanOrEqual(Environment env) { super("string<=?", env); }
+    @Override public Value apply(Value arguments) throws SchemeException {
+      checkArguments(this, arguments, 0, java.lang.Integer.MAX_VALUE, String.class);
+      if (arguments.isNull()) return Boolean.TRUE;
+      String last = (String) ((Pair)arguments).getCar();
+      arguments = ((Pair) arguments).getCdr();
+      while (!arguments.isNull()) {
+        String s = (String) ((Pair)arguments).getCar();
+        if (last.getString().compareTo(s.getString()) > 0) return Boolean.FALSE;
+        last = s;
+        arguments = ((Pair) arguments).getCdr();
+      }
+      return Boolean.TRUE;
+    }
+  }
 }

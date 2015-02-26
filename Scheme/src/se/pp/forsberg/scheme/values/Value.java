@@ -11,6 +11,10 @@ import se.pp.forsberg.scheme.SchemeException;
 
 public abstract class Value {
   public static final Value UNSPECIFIED = Boolean.FALSE;
+  
+  protected boolean mutable = true;
+  public boolean isMutable() { return mutable; }
+  protected void setImmutable() { mutable = false; }
 
   //abstract public Value eval(Environment env);
   abstract public boolean equal(Value value);
@@ -91,4 +95,5 @@ public abstract class Value {
   public java.lang.String toStringSimple() {
     return toString(new HashMap<Value.ValueEqv, Label>(), new HashSet<ValueEqv>());
   }
+  public void makeImmutable() {}
 }

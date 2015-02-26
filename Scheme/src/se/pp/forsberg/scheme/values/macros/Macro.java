@@ -63,7 +63,7 @@ public class Macro extends PatternKeyword {
     }
 
     @Override
-    public Value match(Environment env, Value pattern, Value expression, Bindings bindings) {
+    public Value match(Environment env, Value pattern, Value expression, Bindings bindings) throws SchemeException {
       return replace(template, bindings);
     }
 
@@ -73,7 +73,7 @@ public class Macro extends PatternKeyword {
     // be here?
     // }
 
-    protected Value replace(Value template, Bindings bindings) {
+    protected Value replace(Value template, Bindings bindings) throws SchemeException {
       if (template.isPair()) {
         Pair pTemplate = (Pair) template;
         if (nextEllipsis(pTemplate)) {
@@ -129,10 +129,10 @@ public class Macro extends PatternKeyword {
 
     // Replace subpattern ... in list   eg   ((x y)...)
     // Return generated value
-    private Value replaceRepeated(Value template, Bindings bindings) {
+    private Value replaceRepeated(Value template, Bindings bindings) throws SchemeException {
       return replaceRepeated(template, bindings, 0);
     }
-    private Value replaceRepeated(Value template, Bindings bindings, int rep) {
+    private Value replaceRepeated(Value template, Bindings bindings, int rep) throws SchemeException {
       if (rep >= bindings.repetitions.size()) return Nil.NIL;
       Value v = replace(template, bindings.repetitions.get(rep));
       if (v == null) return Nil.NIL;
@@ -141,7 +141,7 @@ public class Macro extends PatternKeyword {
 
     // Replace subpattern ... in vector   eg   #((x y)...)
     // Place result i vResult
-    private void replaceRepeated(Value value, List<Value> vResult, Bindings bindings) {
+    private void replaceRepeated(Value value, List<Value> vResult, Bindings bindings) throws SchemeException {
       for (Bindings subBindings: bindings.repetitions) {
         Value v = replace(template, subBindings);
         if (v == null) break;
@@ -260,7 +260,11 @@ public class Macro extends PatternKeyword {
     // rewrite value
     public Op match(Op op, Environment env, Value pattern, Value expression, Bindings bindings) {
       Op result = new Op.Eval(op.getParent(), env);
-      op.getEvaluator().setValue(replace(template, bindings));
+      try {
+        op.getEvaluator().setValue(replace(template, bindings));
+      } catch (SchemeException e) {
+        op.getEvaluator().error(e.getError());
+      }
       return result;
     }
 

@@ -68,32 +68,27 @@ public class SystemInterface extends Library {
           return op.getEvaluator().error(e.getError());
         }
       }
-      Pair p = new Pair(new Identifier("begin"), Nil.NIL);
-      Value begin = p;
       Port input;
       try {
         input = Port.openInputFile(filename);
       } catch (SchemeException e) {
         return op.getEvaluator().error(e.getError());
       }
-      Value datum;
+      Value begin;
       try {
-        datum = input.read();
+        begin = new Pair(new Identifier("begin"), loadRecursive(input));
       } catch (SchemeException e) {
         return op.getEvaluator().error(e.getError());
       }
-      while (!datum.isEof()) {
-        p.setCdr(new Pair(datum, Nil.NIL));
-        p = (Pair) p.getCdr();
-        try {
-          datum = input.read();
-        } catch (SchemeException e) {
-          return op.getEvaluator().error(e.getError());
-        }
-      }
+     
       Op result = new Op.Eval(op, environment);
       op.setValue(begin);
       return result;
+    }
+    Value loadRecursive(Port input) throws SchemeException {
+      Value datum = input.read();
+      if (datum.isEof()) return Nil.NIL;
+      return new Pair(datum, loadRecursive(input));
     }
   }
   public class DoesFileExist extends BuiltInProcedure {

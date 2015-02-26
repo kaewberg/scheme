@@ -3,9 +3,12 @@ package se.pp.forsberg.scheme.values;
 import java.io.File;
 import java.io.StringReader;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -243,7 +246,9 @@ public class Environment extends Value {
   protected void importImportSet(Environment importSet) throws SchemeException {
     // TODO last bit of 5.2
     for (Identifier id: importSet.values.keySet()) {
-      if (getContext() != Context.REPL && values.containsKey(id) ) throw new SchemeException("Environment already contains identifier", id);
+      if (getContext() != Context.REPL && values.containsKey(id) ) {
+        throw new SchemeException("Environment already contains identifier", id);
+      }
       values.put(id, importSet.values.get(id));
     }
   }
@@ -332,5 +337,25 @@ public class Environment extends Value {
   }
   public void addErrorHandler(Procedure handler, Op op) {
     this.errorHandler = new ErrorHandler(this.errorHandler, handler, op);
+  }
+  
+  public java.lang.String prettyPrint() {
+    StringBuilder sb = new StringBuilder();
+    prettyPrint(sb, 0);
+    return sb.toString();
+  }
+  private final static java.lang.String spaces = "                                                                                          ";
+  private void prettyPrint(StringBuilder result, int indent) {
+    List<Identifier> keys = new ArrayList<Identifier>(values.keySet());
+    Collections.sort(keys);
+    for (Identifier id: keys) {
+      result.append(spaces.substring(0, indent));
+      result.append(id).append(" = ").append(values.get(id)).append("\n");
+    }
+    if (parent != null) {
+      result.append(spaces.substring(0, indent));
+      result.append("parent =\n");
+      parent.prettyPrint(result, indent+2);
+    }
   }
 }

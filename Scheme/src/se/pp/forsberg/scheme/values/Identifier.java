@@ -7,7 +7,7 @@ import se.pp.forsberg.scheme.values.numbers.Complex;
 import se.pp.forsberg.scheme.values.numbers.LongInteger;
 import se.pp.forsberg.scheme.values.numbers.Number;
 
-public class Identifier extends Value {
+public class Identifier extends Value implements Comparable<Identifier> {
   private final java.lang.String value;
   public Identifier(CharSequence value) {
     this.value = value.toString();
@@ -23,7 +23,7 @@ public class Identifier extends Value {
   public java.lang.String getIdentifier() { return value; }
   @Override
   public Value eval(Environment env) throws SchemeException {
-    //if (getIdentifier().equals("<undefined>")) return null;
+    if (getIdentifier().equals("<undefined>")) return null;
     Value value = env.lookup(this);
     if (value == null) {
       throw new SchemeException("Undefined identifier", this);
@@ -267,5 +267,9 @@ public class Identifier extends Value {
     //System.out.println(this.toString() + " == " + obj); 
     if ((!(obj instanceof Identifier)) || obj instanceof Label) return false;
     return value.equals(((Identifier)obj).value);
+  }
+  @Override
+  public int compareTo(Identifier o) {
+    return value.compareTo(o.value);
   }
 }

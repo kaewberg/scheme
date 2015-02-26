@@ -49,7 +49,9 @@ public class Symbols extends Library {
     @Override public Value apply(Value arguments) throws SchemeException {
       checkArguments(this, arguments, 1, Identifier.class);
       Identifier id = (Identifier) ((Pair)arguments).getCar();
-      return new String(id.getIdentifier());
+      String result =  new String(id.getIdentifier());
+      result.makeImmutable();
+      return result;
     }
   }
   public class StringToSymbol extends BuiltInProcedure {

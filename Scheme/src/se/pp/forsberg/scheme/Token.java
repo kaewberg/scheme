@@ -44,4 +44,48 @@ public class Token {
   public int getLength() { return length; }
   public int getLine() { return line; }
   public int getColumn() { return column; }
+  
+  @Override
+  public String toString() {
+    String result = type.toString() + " ";
+    switch (type) {
+    case BEGIN_BYTEVECTOR:
+      result += "#u8(";
+      break;
+    case BEGIN_VECTOR:
+      result += "#(";
+      break;
+    case COMMENT:
+    case DIRECTIVE:
+      result += "...";
+      break;
+    case DOT:
+      result += ".";
+      break;
+    case EOF:
+      break;
+    case LEFT_PAREN:
+      result += "(";
+      break;
+    case QUASI_QUOTE:
+      result += "`";
+      break;
+    case QUOTE:
+      result += "'";
+      break;
+    case RIGHT_PAREN:
+      result += ")";
+      break;
+    case UNQUOTE:
+      result += ",";
+      break;
+    case UNQUOTE_SPLICING:
+      result += ",@";
+      break;
+    case VALUE:
+      result += value;
+      break;
+    }
+    return result;
+  }
 }

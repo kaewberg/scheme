@@ -14,6 +14,10 @@ public class String extends Value {
   public StringBuilder getStringBuilder() {
     return s;
   }
+  @Override
+  public void makeImmutable() {
+    setImmutable();
+  }
   
   @Override
   public java.lang.String toString() {
