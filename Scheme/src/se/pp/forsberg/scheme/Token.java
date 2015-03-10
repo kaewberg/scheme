@@ -29,15 +29,17 @@ public class Token {
     this.line = line;
     this.column = column;
   }
-  Token(Type type, int offset, int length, int line, int column) {
+  public Token(Type type, int offset, int length, int line, int column) {
+    this(type, "", offset, length, line, column);
+  }
+  public Token(Type type, java.lang.String string, int offset, int length, int line, int column) {
     this.type = type;
-    this.value = null;
+    this.value = new se.pp.forsberg.scheme.values.String(string);
     this.offset = offset;
     this.length = length;
     this.line = line;
     this.column = column;
   }
-  
   public Type getType() { return type; }
   public Value getValue() { return value; }
   public int getOffset() { return offset; }

@@ -367,6 +367,7 @@ public class Tokenizer {
       int column = this.column;
       i = read(); if (i < 0) return null;
       c = (char) i;
+      StringBuilder text;
       switch (c) {
       // <whitespace> -> <intraline whitespace> | <line ending>
       // <intraline whitespace> -> <space or tab>
@@ -374,20 +375,23 @@ public class Tokenizer {
       case ' ': case '\t': case '\r': case '\n': break;
       // <comment> -> ; <all subsequent characters up to a line ending>
       case ';':
-        i = read(); if (i < 0) return new Token(Token.Type.COMMENT, start, 1, line, column);
+        text = new StringBuilder();
+        text.append(';');
+        i = read(); if (i < 0) return eclipseMode? new Token(Token.Type.COMMENT, text.toString(), start, 1, line, column) : null;
         c = (char) i;
         while (c != '\r' && c != '\n') {
-          i = read(); if (i < 0) return new Token(Token.Type.COMMENT, start, offset - start, line, column);
+          i = read(); if (i < 0) return eclipseMode? new Token(Token.Type.COMMENT, text.toString(), start, offset - start, line, column) : null;
           c = (char) i;
+          text.append(c);
         }
         if (c == '\r') {
-          i = read(); if (i < 0) return new Token(Token.Type.COMMENT, start, offset - start, line, column);
+          i = read(); if (i < 0) return eclipseMode? new Token(Token.Type.COMMENT, text.toString(), start, offset - start, line, column) : null;
           c = (char) i;
           if (c != '\n') {
             unread(i);
           }
         }
-        if (eclipseMode)  return new Token(Token.Type.COMMENT, start, offset - start, line, column);
+        if (eclipseMode) return new Token(Token.Type.COMMENT, text.toString(), start, offset - start, line, column);
         break;
       case '#':
         i = read(); if (i < 0) return null;
@@ -398,12 +402,15 @@ public class Tokenizer {
         // <comment text> -> <character sequence not containing #| or |#>
         // <comment cont> -> <nested comment> <comment text>
         case '|':
+          text = new StringBuilder();
+          text.append("#|");
           int commentLevel = 1;
           while (commentLevel > 0) {
-            i = read(); if (i < 0)  return new Token(Token.Type.COMMENT, start, offset - start, line, column);
+            i = read(); if (i < 0) return eclipseMode? new Token(Token.Type.COMMENT, text.toString(), start, offset - start, line, column) : null;
             c = (char) i;
+            text.append(c);
             if (c == '#') {
-              int i2 = read(); if (i2 < 0) return new Token(Token.Type.COMMENT, start, offset - start, line, column);
+              int i2 = read(); if (i2 < 0) return eclipseMode? new Token(Token.Type.COMMENT, text.toString(), start, offset - start, line, column) : null;
               char c2 = (char) i2;
               if (c2 == '|') {
                 commentLevel++;
@@ -411,7 +418,7 @@ public class Tokenizer {
                 unread(i2);
               }
             } else if (c == '|') {
-              int i2 = read(); if (i2 < 0) return new Token(Token.Type.COMMENT, start, offset - start, line, column);
+              int i2 = read(); if (i2 < 0) return eclipseMode? new Token(Token.Type.COMMENT, text.toString(), start, offset - start, line, column) : null;
               char c2 = (char) i2;
               if (c2 == '#') {
                 commentLevel--;
@@ -420,27 +427,28 @@ public class Tokenizer {
               }
             }
           }
-          if (eclipseMode) return new Token(Token.Type.COMMENT, start, offset - start, line, column);
+          if (eclipseMode) return new Token(Token.Type.COMMENT, text.toString(), start, offset - start, line, column);
           break;
         case ';':
           // <comment> -> #; <intertoken space> <datum>
+          Value datum = null;
           try {
-            parser.read();
+            datum = parser.read();
           } catch (SchemeException x) {
             rethrow(x);
           }
-          if (eclipseMode) return new Token(Token.Type.COMMENT, start, offset - start, line, column);
+          if (eclipseMode) return new Token(Token.Type.COMMENT, "#; " + datum.toStringSafe(), start, offset - start, line, column);
           break;
         case '!':
           java.lang.String directive = readUntilDelimiter();
           if (directive.equals("fold-case")) {
-              foldCase = true;
+            foldCase = true;
           } else if (directive.equals("no-fold-case")) {
             foldCase = false;
           } else {
             throw new SyntaxErrorException("Unknown directive #! " + directive, new Token(Token.Type.DIRECTIVE, start, offset-start, line, column));
           }
-          if (eclipseMode) return new Token(Token.Type.DIRECTIVE, start, offset - start, line, column);
+          if (eclipseMode) return new Token(Token.Type.DIRECTIVE, "#!" + directive, start, offset - start, line, column);
           break;
         default:
           unread(i);
@@ -464,11 +472,15 @@ public class Tokenizer {
         throw (SyntaxErrorException) t;
       }
     }
-    throw new SyntaxErrorException("Unplaceable SchemeExecption " + x.getMessage(), new Token(Token.Type.EOF, 0, 0, 0, 0));
+    throw new SyntaxErrorException("Unplaceable SchemeExeception " + x.getMessage(), new Token(Token.Type.EOF, 0, 0, 0, 0));
   }
 
   public void setEclipseMode(boolean b) {
     eclipseMode = b;
+  }
+
+  public boolean isEclipseMode() {
+    return eclipseMode;
   }
   
 }
