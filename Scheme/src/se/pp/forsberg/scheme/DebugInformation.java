@@ -47,6 +47,7 @@ public class DebugInformation {
     
     @Override
     public String toString() {
+      if (this == root) return "<root>";
       String clazz = value.getClass().getName();
       int i = clazz.lastIndexOf('.');
       if (i >= 0) clazz = clazz.substring(i+1);
@@ -57,7 +58,7 @@ public class DebugInformation {
       children.add(result);
       return result;
     }
-    public Node add(Value result, int offset, int length) {
+    public Node add(Value value, int offset, int length) {
       return add(value, offset, length, null);
     }
     public Node add() {
@@ -71,10 +72,13 @@ public class DebugInformation {
       if (children.size() == 0) return null;
       return children.get(0);
     }
+    public SyntaxErrorException getSyntaxError() {
+      return syntaxError;
+    }
   }
   Node root;
 
-  enum AtmosphereType {
+  public enum AtmosphereType {
     COMMENT,
     DIRECTIVE,
     WHITESPACE;
@@ -93,6 +97,10 @@ public class DebugInformation {
     public java.lang.String getValue() { return value; }
     public int getOffset() { return offset; }
     public int getLength() { return length; }
+  }
+  
+  public DebugInformation() {
+    clear();
   }
   
   public Node getRoot() { return root; }

@@ -13,6 +13,7 @@ import org.junit.Test;
 import se.pp.forsberg.scheme.values.Boolean;
 import se.pp.forsberg.scheme.values.ByteVector;
 import se.pp.forsberg.scheme.values.Character;
+import se.pp.forsberg.scheme.values.Eof;
 import se.pp.forsberg.scheme.values.Identifier;
 import se.pp.forsberg.scheme.values.Nil;
 import se.pp.forsberg.scheme.values.Pair;
@@ -25,11 +26,15 @@ import se.pp.forsberg.scheme.values.numbers.LongInteger;
 import se.pp.forsberg.scheme.values.numbers.Number;
 import se.pp.forsberg.scheme.values.numbers.RationalPair;
 import se.pp.forsberg.scheme.values.numbers.Real;
+import se.pp.forsberg.scheme.values.errors.Error;
 
 public class TestParser {
 
   protected Parser createParser(java.lang.String s) {
     return new Parser(new StringReader(s));
+  }
+  protected Value parse(java.lang.String s) throws SchemeException {
+    return createParser(s).read();
   }
   @Test
   public void testComment1() throws SchemeException {
@@ -616,5 +621,322 @@ public class TestParser {
       assertEquals(x, v.get(0));
       value = v.get(1);
     }
+  }
+  @Test
+  public void testDebugInformationSimple() throws SchemeException {
+    Parser parser = createParser("1 2 3");
+    parser.setDebug(true);
+    while (parser.read() != Eof.EOF);
+    DebugInformation debugInformation = parser.getDebugInformation();
+    DebugInformation.Node root = debugInformation.getRoot();
+    List<DebugInformation.Node> children = root.getChildren();
+    assertEquals(3, children.size());
+    DebugInformation.Node child = children.get(0);
+    assertEquals(parse("1"), child.getValue());
+    assertEquals(0, child.getChildren().size());
+    assertEquals(0, child.getOffset());
+    assertEquals(1, child.getLength());
+    child = children.get(1);
+    assertEquals(parse("2"), child.getValue());
+    assertEquals(0, child.getChildren().size());
+    assertEquals(2, child.getOffset());
+    assertEquals(1, child.getLength());
+    child = children.get(2);
+    assertEquals(parse("3"), child.getValue());
+    assertEquals(0, child.getChildren().size());
+    assertEquals(4, child.getOffset());
+    assertEquals(1, child.getLength());
+  }
+  @Test
+  public void testDebugInformationList() throws SchemeException {
+    //                            012345678
+    Parser parser = createParser("(1 (2 3))");
+    parser.setDebug(true);
+    while (parser.read() != Eof.EOF);
+    DebugInformation debugInformation = parser.getDebugInformation();
+    DebugInformation.Node root = debugInformation.getRoot();
+    List<DebugInformation.Node> children = root.getChildren();
+    assertEquals(1, children.size());
+    DebugInformation.Node child = children.get(0);
+    assertEquals(parse("(1 (2 3))"), child.getValue());
+    assertEquals(0, child.getOffset());
+    assertEquals(9, child.getLength());
+    children = child.getChildren();
+    assertEquals(2, children.size());
+    child = children.get(0);
+    assertEquals(parse("1"), child.getValue());
+    assertEquals(1, child.getOffset());
+    assertEquals(1, child.getLength());
+    assertEquals(0, child.getChildren().size());
+    child = children.get(1);
+    assertEquals(parse("((2 3))"), child.getValue());
+    assertEquals(3, child.getOffset());
+    assertEquals(6, child.getLength());
+    children = child.getChildren();
+    assertEquals(2, children.size());
+    child = children.get(1);
+    assertEquals(Nil.NIL, child.getValue());
+    assertEquals(8, child.getOffset());
+    assertEquals(1, child.getLength());
+    assertEquals(0, child.getChildren().size());
+    child = children.get(0);
+    children = child.getChildren();
+    assertEquals(2, children.size());
+    child = children.get(0);
+    assertEquals(parse("2"), child.getValue());
+    assertEquals(4, child.getOffset());
+    assertEquals(1, child.getLength());
+    assertEquals(0, child.getChildren().size());
+    child = children.get(1);
+    assertEquals(parse("(3)"), child.getValue());
+    assertEquals(6, child.getOffset());
+    assertEquals(2, child.getLength());
+    children = child.getChildren();
+    assertEquals(2, children.size());
+    child = children.get(1);
+    assertEquals(Nil.NIL, child.getValue());
+    assertEquals(7, child.getOffset());
+    assertEquals(1, child.getLength());
+    assertEquals(0, child.getChildren().size());
+    child = children.get(0);
+    assertEquals(parse("3"), child.getValue());
+    assertEquals(6, child.getOffset());
+    assertEquals(1, child.getLength());
+    assertEquals(0, child.getChildren().size());
+  }
+  @Test
+  public void testDebugInformationPair() throws SchemeException {
+    //                            0123456789
+    Parser parser = createParser("(1 . 2   )");
+    parser.setDebug(true);
+    while (parser.read() != Eof.EOF);
+    DebugInformation debugInformation = parser.getDebugInformation();
+    DebugInformation.Node root = debugInformation.getRoot();
+    List<DebugInformation.Node> children = root.getChildren();
+    assertEquals(1, children.size());
+    DebugInformation.Node child = children.get(0);
+    assertEquals(parse("(1 . 2)"), child.getValue());
+    assertEquals(0, child.getOffset());
+    assertEquals(10, child.getLength());
+    children = child.getChildren();
+    assertEquals(2, children.size());
+    child = children.get(0);
+    assertEquals(parse("1"), child.getValue());
+    assertEquals(1, child.getOffset());
+    assertEquals(1, child.getLength());
+    assertEquals(0, child.getChildren().size());
+    child = children.get(1);
+    assertEquals(parse("2)"), child.getValue());
+    assertEquals(5, child.getOffset());
+    assertEquals(1, child.getLength());
+    assertEquals(0, child.getChildren().size());
+  }
+  @Test
+  public void testDebugInformationNil() throws SchemeException {
+    //                            012345678
+    Parser parser = createParser("()");
+    parser.setDebug(true);
+    while (parser.read() != Eof.EOF);
+    DebugInformation debugInformation = parser.getDebugInformation();
+    DebugInformation.Node root = debugInformation.getRoot();
+    List<DebugInformation.Node> children = root.getChildren();
+    assertEquals(1, children.size());
+    DebugInformation.Node child = children.get(0);
+    assertEquals(0, child.getChildren().size());
+    assertEquals(Nil.NIL, child.getValue());
+    assertEquals(0, child.getOffset());
+    assertEquals(2, child.getLength());
+  }
+  @Test
+  public void testDebugInformationBadPair1() throws SchemeException {
+    //                            012345678
+    Parser parser = createParser("(");
+    parser.setDebug(true);
+    while (parser.read() != Eof.EOF);
+    DebugInformation debugInformation = parser.getDebugInformation();
+    DebugInformation.Node root = debugInformation.getRoot();
+    List<DebugInformation.Node> children = root.getChildren();
+    assertEquals(1, children.size());
+    DebugInformation.Node child = children.get(0);
+    assertEquals(0, child.getChildren().size());
+    assertTrue(child.getValue().isError());
+    assertEquals("Unexpected EOF", ((Error)child.getValue()).getMessage().getString());
+    assertEquals(0, child.getOffset());
+    assertEquals(1, child.getLength());
+  }
+  @Test
+  public void testDebugInformationBadPair2() throws SchemeException {
+    //                            012345678
+    Parser parser = createParser("(1 (2 ");
+    parser.setDebug(true);
+    while (parser.read() != Eof.EOF);
+    DebugInformation debugInformation = parser.getDebugInformation();
+    DebugInformation.Node root = debugInformation.getRoot();
+    List<DebugInformation.Node> children = root.getChildren();
+    assertEquals(1, children.size());
+    DebugInformation.Node child = children.get(0);  // "(1 (2 "
+    assertEquals(2, child.getChildren().size());
+    assertEquals(0, child.getOffset());
+    assertEquals(6, child.getLength());
+    children = child.getChildren();
+    child = children.get(0);                        // "1"
+    assertEquals(0, child.getChildren().size());
+    assertEquals(parse("1"), child.getValue());
+    assertEquals(1, child.getOffset());
+    assertEquals(1, child.getLength());
+    child = children.get(1);                        // "((2 "
+    assertEquals(3, child.getOffset());
+    assertEquals(3, child.getLength());
+    assertEquals(2, child.getChildren().size());
+    children = child.getChildren();
+    child = children.get(1);
+    assertTrue(child.getValue().isError());
+    assertEquals("Unexpected EOF", ((Error)child.getValue()).getMessage().getString());
+    assertEquals(6, child.getOffset());
+    assertEquals(0, child.getLength());
+    child = children.get(0);                       // "(2 "
+    assertEquals(3, child.getOffset());
+    assertEquals(3, child.getLength());
+    assertEquals(2, child.getChildren().size());
+    children = child.getChildren();
+    child = children.get(1);
+    assertTrue(child.getValue().isError());
+    assertEquals("Unexpected EOF", ((Error)child.getValue()).getMessage().getString());
+    assertEquals(6, child.getOffset());
+    assertEquals(0, child.getLength());
+    child = children.get(0);                       // "2"
+    assertEquals(4, child.getOffset());
+    assertEquals(1, child.getLength());
+    assertEquals(0, child.getChildren().size());
+    assertEquals(parse("2"), child.getValue());
+  }
+  @Test
+  public void testDebugInformationBadPair3() throws SchemeException {
+    //                            012345678
+    Parser parser = createParser("(1 . )");
+    parser.setDebug(true);
+    while (parser.read() != Eof.EOF);
+    DebugInformation debugInformation = parser.getDebugInformation();
+    DebugInformation.Node root = debugInformation.getRoot();
+    List<DebugInformation.Node> children = root.getChildren();
+    assertEquals(1, children.size());
+    DebugInformation.Node child = children.get(0);
+    assertEquals(2, child.getChildren().size());
+    children = child.getChildren();
+    assertEquals(0, child.getOffset());
+    assertEquals(6, child.getLength());
+    child = children.get(0);
+    assertEquals(parse("1"), child.getValue());
+    assertEquals(1, child.getOffset());
+    assertEquals(1, child.getLength());
+    child = children.get(1);
+    assertTrue(child.getValue().isError());
+    assertTrue(((Error) child.getValue()).getMessage().getString().startsWith("Expected value"));
+    assertEquals(3, child.getOffset());
+    assertEquals(1, child.getLength());
+  }
+  @Test
+  public void testDebugInformationBadPair4() throws SchemeException {
+    //                            012345678
+    Parser parser = createParser("( . 2)");
+    parser.setDebug(true);
+    while (parser.read() != Eof.EOF);
+    DebugInformation debugInformation = parser.getDebugInformation();
+    DebugInformation.Node root = debugInformation.getRoot();
+    List<DebugInformation.Node> children = root.getChildren();
+    assertEquals(1, children.size());
+    DebugInformation.Node child = children.get(0);
+    assertEquals(2, child.getChildren().size());
+    children = child.getChildren();
+    assertEquals(0, child.getOffset());
+    assertEquals(6, child.getLength());
+    child = children.get(0);
+    assertTrue(child.getValue().isError());
+    assertTrue(((Error) child.getValue()).getMessage().getString().startsWith("Expected value"));
+    assertEquals(2, child.getOffset());
+    assertEquals(1, child.getLength());
+    child = children.get(1);
+    assertEquals(parse("2"), child.getValue());
+    assertEquals(4, child.getOffset());
+    assertEquals(1, child.getLength());
+  }
+  @Test
+  public void testDebugInformationBadPair5() throws SchemeException {
+    //                            012345678
+    Parser parser = createParser("( . )");
+    parser.setDebug(true);
+    while (parser.read() != Eof.EOF);
+    DebugInformation debugInformation = parser.getDebugInformation();
+    DebugInformation.Node root = debugInformation.getRoot();
+    List<DebugInformation.Node> children = root.getChildren();
+    assertEquals(1, children.size());
+    DebugInformation.Node child = children.get(0);
+    assertEquals(2, child.getChildren().size());
+    children = child.getChildren();
+    assertEquals(0, child.getOffset());
+    assertEquals(5, child.getLength());
+    child = children.get(0);
+    assertTrue(child.getValue().isError());
+    assertTrue(((Error) child.getValue()).getMessage().getString().startsWith("Expected value"));
+    assertEquals(2, child.getOffset());
+    assertEquals(1, child.getLength());
+    child = children.get(1);
+    assertTrue(child.getValue().isError());
+    assertTrue(((Error) child.getValue()).getMessage().getString().startsWith("Expected value"));
+    assertEquals(2, child.getOffset());
+    assertEquals(1, child.getLength());
+  }
+  @Test
+  public void testDebugInformationBadPair6() throws SchemeException {
+    //                            012345678
+    Parser parser = createParser("( . 2");
+    parser.setDebug(true);
+    while (parser.read() != Eof.EOF);
+    DebugInformation debugInformation = parser.getDebugInformation();
+    DebugInformation.Node root = debugInformation.getRoot();
+    List<DebugInformation.Node> children = root.getChildren();
+    assertEquals(1, children.size());
+    DebugInformation.Node child = children.get(0);
+    assertEquals(2, child.getChildren().size());
+    children = child.getChildren();
+    assertEquals(0, child.getOffset());
+    assertEquals(5, child.getLength());
+    child = children.get(0);
+    assertTrue(child.getValue().isError());
+    assertTrue(((Error) child.getValue()).getMessage().getString().startsWith("Expected value"));
+    assertEquals(2, child.getOffset());
+    assertEquals(1, child.getLength());
+    child = children.get(1);
+    assertEquals(parse("2"), child.getValue());
+    assertTrue(child.isSyntaxError());
+    assertTrue(child.getSyntaxError().getMessage().startsWith("Expected )"));
+    assertEquals(4, child.getOffset());
+    assertEquals(1, child.getLength());
+  }
+  @Test
+  public void testDebugInformationBadPair7() throws SchemeException {
+    //                            012345678
+    Parser parser = createParser("( . ");
+    parser.setDebug(true);
+    while (parser.read() != Eof.EOF);
+    DebugInformation debugInformation = parser.getDebugInformation();
+    DebugInformation.Node root = debugInformation.getRoot();
+    List<DebugInformation.Node> children = root.getChildren();
+    assertEquals(1, children.size());
+    DebugInformation.Node child = children.get(0);
+    assertEquals(2, child.getChildren().size());
+    children = child.getChildren();
+    assertEquals(0, child.getOffset());
+    assertEquals(4, child.getLength());
+    child = children.get(0);
+    assertTrue(child.getValue().isError());
+    assertTrue(((Error) child.getValue()).getMessage().getString().startsWith("Expected value"));
+    assertEquals(2, child.getOffset());
+    assertEquals(1, child.getLength());
+    child = children.get(1);
+    assertTrue(child.getValue().isError());
+    assertTrue(((Error) child.getValue()).getMessage().getString().startsWith("Unexpected EOF"));
+    assertEquals(4, child.getOffset());
+    assertEquals(0, child.getLength());
   }
 }

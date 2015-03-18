@@ -14,6 +14,7 @@ import se.pp.forsberg.scheme.values.ByteVector;
 import se.pp.forsberg.scheme.values.Environment;
 import se.pp.forsberg.scheme.values.Eof;
 import se.pp.forsberg.scheme.values.Identifier;
+import se.pp.forsberg.scheme.values.errors.Error;
 import se.pp.forsberg.scheme.values.Label;
 import se.pp.forsberg.scheme.values.Nil;
 import se.pp.forsberg.scheme.values.Pair;
@@ -93,7 +94,14 @@ public class Parser {
   // '(#1=(foo . #1#))
   // We need to create a new labling env when starting eval of list or vector
   public Value read(Label labelThis, Environment labels) throws SchemeException {
-    return read(labelThis, labels, debugInformation.getRoot());
+    Value result = read(labelThis, labels, debugInformation.getRoot());
+    if (debug()) {
+      DebugInformation.Node last = debugInformation.getRoot().getLastChild();
+      if (last.getValue().isEof()) {
+        last.getParent().getChildren().remove(last);
+      }
+    }
+    return result;
   }
     public Value read(Label labelThis, Environment labels, DebugInformation.Node parentNode) throws SchemeException {
     try {
@@ -115,6 +123,7 @@ public class Parser {
         syntaxError = x;
       }
       if (token.getType() == Type.EOF) {
+        if (debug()) parentNode.add(EOF, token.getOffset(), 0);
         return EOF;
       }
       
@@ -176,7 +185,7 @@ public class Parser {
             labels.define(labelThis, result);
           }
           if (debug()) {
-            DebugInformation.Node datumNode = node2.getLastChild();
+            DebugInformation.Node datumNode = parentNode.getLastChild();
             node1.setValue(result);
             node1.setOffset(offset);
             node1.setLength(datumNode.getLength() + datumNode.getOffset() - offset);
@@ -377,10 +386,16 @@ public class Parser {
           }
           return result;
         case LEFT_PAREN:
-          if (debug()) {
-            parentNode = parentNode.add(null, offset, 0);
-          }
-          return readList(labelThis, labels, parentNode);
+//          if (debug()) {
+//            parentNode = parentNode.add(null, offset, 0);
+//          }
+          result = readList(labelThis, labels, parentNode, offset, true);
+//          if (debug()) {
+//            parentNode.setValue(result);
+//            DebugInformation.Node end = parentNode.getLastChild();
+//            parentNode.setLength(end.getOffset() + end.getLength() - offset);
+//          }
+          return result;
         case RIGHT_PAREN:
         case DOT: tokenizer.pushback(token); return null;
         case EOF: return null;
@@ -402,9 +417,20 @@ public class Parser {
     }
     throw new SchemeException(new ReadError(new SyntaxErrorException("Bad programmer", null)));
   }
-  Value readList(Label labelThis, Environment labels, DebugInformation.Node parentNode) throws SchemeException, IOException, SyntaxErrorException {
-    Value car = read(null, labels, parentNode);
+  Value readList(Label labelThis, Environment labels, DebugInformation.Node parentNode, int startOffset, boolean first) throws SchemeException, IOException, SyntaxErrorException {
+    //Value pair;
+    DebugInformation.Node pairNode = null, carNode = null, cdrNode = null;
+    if (debug()) {
+      //pair = new Pair(null, null);
+      pairNode = parentNode.add(null, startOffset, 0);
+    }
+    Value car = read(null, labels, pairNode);
     if (car == null) {
+      // End of list, either ) or . datum )
+      // In either case, we need to change the debug information node to be a single value '() or datum
+      if (debug()) {
+        parentNode.getChildren().remove(pairNode);
+      }
       Token token;
       try {
         token = readToken();
@@ -415,11 +441,35 @@ public class Parser {
       switch (token.getType()) {
       case RIGHT_PAREN:
         if (debug()) {
-          parentNode.add(NIL, token.getOffset(), 1);
+          int length;
+          if (startOffset < 0) {
+            startOffset = token.getOffset();
+            length = 1;
+          } else {
+            length = token.getOffset() - startOffset + 1;
+          }
+          parentNode.add(NIL, startOffset, length);
         }
         return NIL;
       case DOT:
-        Value cdr;
+        Pair pair = null;
+        Value cdr = null;
+        if (first) {
+          Error error = new Error("Expected value preceding .");
+          if (!debug()) throw new SchemeException(error);
+          pair = new Pair(error, null);
+          int offset = token.getOffset();
+          if (startOffset >= 0) offset = startOffset; 
+          parentNode.add(pair, offset, 0);
+          parentNode = parentNode.getLastChild();
+          offset = token.getOffset();
+          int length = token.getLength();
+//          if (startOffset >= 0) {
+//            length += offset - startOffset;
+//            offset = startOffset; 
+//          }
+          parentNode.add(error, offset, length);
+        }
         try {
           cdr = read(null, labels, parentNode);
         } catch (SchemeException x) {
@@ -427,8 +477,21 @@ public class Parser {
           cdr = x.getError();
         }
         if (cdr == null) {
-          if (!debug()) throw new SchemeException("Expected value after .");
-          parentNode.add(new se.pp.forsberg.scheme.values.errors.Error("Expected value after ."), token.getOffset() + token.getLength(), 0);
+          Error error = new Error("Expected value after .");
+          if (!debug()) throw new SchemeException(error);
+          parentNode.add(error, token.getOffset(), 1);
+          cdr = error;
+        }
+        if (cdr.isEof()) {
+          Error error = new Error("Unexpected EOF");
+          if (!debug()) throw new SchemeException(error);
+          cdr = error;
+          DebugInformation.Node eofNode = parentNode.getLastChild();
+          parentNode.getChildren().remove(eofNode);
+          parentNode.add(error, eofNode.getOffset(), 0);
+        }
+        if (first) {
+          pair.setCdr(cdr);
         }
         try {
           token = readToken();
@@ -437,39 +500,74 @@ public class Parser {
           token = x.getToken();
         }
         if (token.getType() != Type.RIGHT_PAREN) {
-          if (!debug()) throw new SchemeException("Expected ) after . value" , new se.pp.forsberg.scheme.values.String(token.getType().toString()));
-          parentNode.add(new se.pp.forsberg.scheme.values.errors.Error("Expected ) after . value"), token.getOffset() + token.getLength(), 0);
+          Error error;
+          //boolean eof = token.getType() == Type.EOF;
+          error = new Error("Expected ) after . value", new se.pp.forsberg.scheme.values.String(token.getType().toString()));
+          if (!debug()) throw new SchemeException(error);
+          parentNode.getLastChild().setSyntaxError(new SyntaxErrorException(error.getMessage().getString(), token));
+          //parentNode.add(error, token.getOffset(), token.getLength());
+        }
+        if (debug()) {
+          // 012345678
+          // (1 2 3  )
+          // Last item in list will be '() at position 8 length 1
+          // 01234567890
+          // (1 2 . 3  )
+          // Last item in list will be 3 at position 7 length 1, but pair containing it
+          // should be (2 . 3) at position 3 length 8
+          parentNode.setLength(token.getLength() + token.getOffset() - parentNode.getOffset());
         }
         return cdr;
       default:
-        if (!debug()) throw new SchemeException("Unexpected " + token);
-        Value error;
+        Value irritant;
         if (token.getType() == Type.VALUE) {
-          error = token.getValue();
+          irritant = token.getValue();
         } else {
-          error = new se.pp.forsberg.scheme.values.errors.Error("Expected . or )");
+          irritant = new se.pp.forsberg.scheme.values.String(token.getType().toString());
         }
+        Error error = new Error("Unexpected token", irritant);
+        if (!debug()) throw new SchemeException(error);
         parentNode.add(error, token.getOffset(), token.getLength());
       }
     }
     if (car.isEof()) {
-      if (!debug()) throw new SchemeException("Unexpected EOF");
-      parentNode.add(new se.pp.forsberg.scheme.values.errors.Error("Unexpected EOF"), parentNode.getOffset() + parentNode.getLength(), 0);
-      parentNode.add(Nil.NIL, parentNode.getOffset() + parentNode.getLength(), 0);
-      return Nil.NIL;
+      Error error = new Error("Unexpected EOF");
+      if (!debug()) throw new SchemeException(error);
+      DebugInformation.Node eofNode = pairNode.getFirstChild();
+      parentNode.getChildren().remove(pairNode);
+      int offset = eofNode.getOffset();
+      int length = eofNode.getLength();
+      if (startOffset >= 0) {
+        length += offset - startOffset;
+        offset = startOffset;
+      }
+      parentNode.add(error, offset, length);
+      return error;
+    }
+    if (debug()) {
+      carNode = pairNode.getFirstChild();
+      if (startOffset < 0) {
+        startOffset = carNode.getOffset();
+        pairNode.setOffset(startOffset);
+      }
     }
     Pair result = new Pair(car, Nil.NIL);
-    DebugInformation.Node cdrNode = parentNode;
     if (debug()) {
-      cdrNode = parentNode.add(result, 0, 0);
+      pairNode.setValue(result);
     }
     if (labelThis != null) {
       labels.define(labelThis, result);
     }
-    result.setCdr(readList(null, labels, cdrNode));
-    if (debug()) {
-      DebugInformation.Node carNode = parentNode.getFirstChild();
-      parentNode.add(result, carNode.offset, cdrNode.getLength() + cdrNode.getOffset() - carNode.getOffset());
+    Value cdr = readList(null, labels, pairNode, -1, false);
+    result.setCdr(cdr);
+    if (debug()  && pairNode.getLength() <= 0) {
+      carNode = pairNode.getFirstChild();
+      cdrNode = pairNode.getLastChild();
+      int length = cdrNode.getLength() + cdrNode.getOffset() - startOffset;
+      //if (!cdr.isNull()) length++;
+      pairNode.setLength(length);
+      //cdrNode.setValue(result.getCdr());
+      //parentNode.add(result, carNode.offset, cdrNode.getLength() + cdrNode.getOffset() - carNode.getOffset());
     }
     return result;
   }
@@ -487,6 +585,10 @@ public class Parser {
   }
   public DebugInformation getDebugInformation() {
     return debugInformation;
+  }
+
+  public void setDebug(boolean b) {
+    tokenizer.setEclipseMode(b);
   }
   
 }
