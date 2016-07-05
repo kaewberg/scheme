@@ -1,22 +1,14 @@
 package sjecplise.editors;
 
-import java.io.InputStream;
-
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IFileEditorInput;
-import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 
 import se.pp.forsberg.scheme.DebugInformation;
-import se.pp.forsberg.scheme.Parser;
-import se.pp.forsberg.scheme.SchemeException;
-import se.pp.forsberg.scheme.values.Value;
 
 public class SchemeContentOutlinePage extends ContentOutlinePage {
   SchemeDocumentModel model;

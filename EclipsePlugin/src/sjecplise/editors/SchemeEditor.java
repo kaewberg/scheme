@@ -1,11 +1,7 @@
 package sjecplise.editors;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.text.IFindReplaceTarget;
-import org.eclipse.jface.text.source.IVerticalRulerInfo;
 import org.eclipse.ui.editors.text.TextEditor;
-import org.eclipse.ui.part.IShowInSource;
-import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 public class SchemeEditor extends TextEditor {

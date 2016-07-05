@@ -8,7 +8,6 @@ import org.eclipse.jface.text.rules.FastPartitioner;
 import org.eclipse.ui.editors.text.FileDocumentProvider;
 
 import se.pp.forsberg.scheme.SchemeException;
-import se.pp.forsberg.scheme.Token;
 
 public class SchemeDocumentProvider extends FileDocumentProvider {
 
